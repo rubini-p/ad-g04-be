@@ -1,5 +1,4 @@
-// OBSOLETE - solo para ejemplo
-
+// WIP, Armar modelo de calificaciones
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 

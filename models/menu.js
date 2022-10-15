@@ -1,5 +1,4 @@
-// OBSOLETE - solo para ejemplo
-
+// WIP Armar el modelo de menu
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 

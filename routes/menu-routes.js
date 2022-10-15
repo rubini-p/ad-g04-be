@@ -1,4 +1,4 @@
-//OBSOLETE - Solo ejemplo
+//WIP Armar menu routes
 const express = require('express');
 const { check } = require('express-validator');
 

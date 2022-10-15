@@ -1,4 +1,4 @@
-// OBSOLETE - solo para ejemplo
+// WIP Armar modelo restaurnt
 
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;

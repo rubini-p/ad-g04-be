@@ -1,5 +1,4 @@
-// OBSOLETE - Solo ejemplo
-
+// WIP Armar controller
 const fs = require('fs');
 
 const { validationResult } = require('express-validator');

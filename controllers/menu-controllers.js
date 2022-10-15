@@ -1,4 +1,4 @@
-// OBSOLETE - Solo ejemplo
+// WIP Armar controller
 
 const fs = require('fs');
 
