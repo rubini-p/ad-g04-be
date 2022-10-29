@@ -2,12 +2,12 @@
 const express = require('express');
 const { check } = require('express-validator');
 
-const recetasControllers = require('../controllers/recetas-controllers');
+const menuController = require('../controllers/menu-controllers');
 const fileUpload = require('../middleware/file-upload');
 
-const checkAuth = require('../middleware/check-auth');
+//const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
-
+/*
 router.get('/all', recetasControllers.getRecetas);
 
 
@@ -16,48 +16,27 @@ router.get('/:pid', recetasControllers.getRecetaById);
 router.get('/user/:uid', recetasControllers.getRecetasByUserId);
 
 router.use(checkAuth);
+*/
+
+router.get('/', menuController.getMenuById);
 
 router.post(
-    '/',
+    '/createMenu',
     // fileUpload.single('image'),
     [
-        check('nombre_receta')
+        check('id')
             .not()
             .isEmpty(),
-        check('ingredientes_ppal')
+        check('category')
             .not()
             .isEmpty(),
-        check('ingredientes')
+        check('food')
             .not()
             .isEmpty(),
-        check('categoria')
-            .not()
-            .isEmpty(),
-        check('dificultad')
-            .not()
-            .isEmpty(),
-        check('status')
-            .not()
-            .isEmpty(),
-        check('Proceso')
-            .not()
-            .isEmpty(),
-        check('Intro')
-            .not()
-            .isEmpty(),
-        check('rating')
-            .not()
-            .isEmpty(),
-        check('coverUrl')
-            .not()
-            .isEmpty(),
-        check('avatarUrl')
-            .not()
-            .isEmpty()
     ],
-    recetasControllers.createReceta
+    menuController.createMenu
 );
-
+/*
 router.patch(
     '/:pid',
     [
@@ -99,5 +78,5 @@ router.patch(
 );
 
 router.delete('/:pid', recetasControllers.deleteReceta);
-
+*/
 module.exports = router;
