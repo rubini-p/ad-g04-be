@@ -1,0 +1,6 @@
+node_modules
+infra
+README.md
+app.js
+.gitignore
+Dockerfile

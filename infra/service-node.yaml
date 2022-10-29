@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: mongo
+  name: node-service
+  namespace: ad-dev
+spec:
+  ports:
+    - port: 5001
+      protocol: TCP
+      targetPort: 5001
+  selector:
+    app: mongo
+  type: ClusterIP

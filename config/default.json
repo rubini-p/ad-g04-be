@@ -1,4 +1,4 @@
 {
-  "mongoURI": "mongodb://admin:passw0rd@127.0.0.1:27017/addb?retryWrites=true&w=majority&authSource=admin"
+  "mongoURI": "mongodb://admin:passw0rd@mongo-service:27017/addb?retryWrites=true&w=majority&authSource=admin"
 }
 
