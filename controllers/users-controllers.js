@@ -65,7 +65,7 @@ const signup = async (req, res, next) => {
     email,
     // image: req.file.path,
     password: hashedPassword,
-    recetas: []
+    // recetas: []
   });
 
   try {
