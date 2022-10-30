@@ -2,12 +2,12 @@
 
 //const fs = require('fs');
 
-const { validationResult } = require('express-validator');
-const mongoose = require('mongoose');
+const { validationResult } = require("express-validator");
+const mongoose = require("mongoose");
 
-const HttpError = require('../models/http-error');
+const HttpError = require("../models/http-error");
 //const Menu = require('../models/Menu');
-const Menu = require('../models/menu');
+const Menu = require("../models/menu");
 
 const getMenu = async (req, res, next) => {
   //const menuId = req.params.pid;
@@ -17,12 +17,12 @@ const getMenu = async (req, res, next) => {
     menus = await Menu.find();
   } catch (err) {
     const error = new HttpError(
-        'Fetching menu failed, please try again later.',
-        500
+      "Fetching menu failed, please try again later.",
+      500
     );
     return next(error);
   }
-/*
+  /*
   if (!menus) {
     const error = new HttpError(
         'Could not find Menu for the provided id.',
@@ -33,7 +33,7 @@ const getMenu = async (req, res, next) => {
 */
 
   //res.json({menus});
-  res.json({ menus: menus.map(menu => menu.toObject({ getters: true })) })
+  res.json({ menus: menus.map((menu) => menu.toObject({ getters: true })) });
 };
 
 const getMenuById = async (req, res, next) => {
@@ -44,7 +44,7 @@ const getMenuById = async (req, res, next) => {
     Menu = await Menu.findById(menuId);
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not find a Menu.',
+      "Something went wrong, could not find a Menu.",
       500
     );
     return next(error);
@@ -52,7 +52,7 @@ const getMenuById = async (req, res, next) => {
 
   if (!Menu) {
     const error = new HttpError(
-      'Could not find Menu for the provided id.',
+      "Could not find Menu for the provided id.",
       404
     );
     return next(error);
@@ -94,7 +94,7 @@ const getmenusByexistingMenuId = async (req, res, next) => {
   });
 };
 */
-const createMenu = async (req, res, next) => {
+/*const createMenu = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -103,13 +103,13 @@ const createMenu = async (req, res, next) => {
   }
 
   const { id, category, food } = req.body;
-/*
+
   const createdMenu = new Menu({
     id, 
     category, 
     food 
   });
-*/
+
   let existingMenu;
   try {
     existingMenu = await Menu.findById(req.existingMenuData.existingMenuId);
@@ -152,12 +152,62 @@ const createMenu = async (req, res, next) => {
 
   res.status(201).json({ Menu: createdMenu });
 };
+*/
+
+const createMenu = async function (req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError("Invalid inputs passed, please check your data.", 422)
+    );
+  }
+  const { id, category, food } = req.body;
+  //tenemos que pasarlo a una tabla
+  const categoryAccepted = [
+    "Promocion del Dia",
+    "Entradas",
+    "Minutas",
+    "Ensaladas",
+    "Cafeteria",
+    "Carnes",
+    "Pizzas",
+    "Pescado",
+    "Pastas",
+    "Postres",
+  ];
+  if (categoryAccepted.includes(category)) {
+    const createdMenu = new Menu({
+      category,
+      food,
+    });
+    console.log(createdMenu);
+    try {
+      await createdMenu.save();
+    } catch (err) {
+      const error = new HttpError(
+        "Signing up failed, please try again later.",
+        500
+      );
+      return next(error);
+    }
+    res
+      .status(201)
+      .json({
+        menuId: createdMenu.id,
+        category: createdMenu.category,
+        food: createdMenu.food,
+      });
+  }else{
+    const error = "La categoria ingresada no es valida.";
+    return next(error);
+  }
+};
 
 const updateMenu = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
-        new HttpError('Invalid inputs passed, please check your data.', 422)
+      new HttpError("Invalid inputs passed, please check your data.", 422)
     );
   }
 
@@ -166,18 +216,17 @@ const updateMenu = async (req, res, next) => {
 
   let Menu;
   try {
-    Menu = await Menu.findById(menuId
-  );
+    Menu = await Menu.findById(menuId);
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not update Menu.',
-        500
+      "Something went wrong, could not update Menu.",
+      500
     );
     return next(error);
   }
 
   if (Menu.creador.toString() !== req.existingMenuData.existingMenuId) {
-    const error = new HttpError('You are not allowed to edit this Menu.', 401);
+    const error = new HttpError("You are not allowed to edit this Menu.", 401);
     return next(error);
   }
 
@@ -189,8 +238,8 @@ const updateMenu = async (req, res, next) => {
     await Menu.save();
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not update Menu.',
-        500
+      "Something went wrong, could not update Menu.",
+      500
     );
     return next(error);
   }
@@ -203,25 +252,24 @@ const deleteMenu = async (req, res, next) => {
 
   let Menu;
   try {
-    Menu = await Menu.findById(menuId
-  ).populate('creador');
+    Menu = await Menu.findById(menuId).populate("creador");
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not delete Menu.',
-        500
+      "Something went wrong, could not delete Menu.",
+      500
     );
     return next(error);
   }
 
   if (!Menu) {
-    const error = new HttpError('Could not find Menu for this id.', 404);
+    const error = new HttpError("Could not find Menu for this id.", 404);
     return next(error);
   }
 
   if (Menu.creador.id !== req.existingMenuData.existingMenuId) {
     const error = new HttpError(
-        'You are not allowed to delete this Menu.',
-        401
+      "You are not allowed to delete this Menu.",
+      401
     );
     return next(error);
   }
@@ -237,8 +285,8 @@ const deleteMenu = async (req, res, next) => {
     // await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not delete Menu.',
-        500
+      "Something went wrong, could not delete Menu.",
+      500
     );
     return next(error);
   }
@@ -247,7 +295,7 @@ const deleteMenu = async (req, res, next) => {
   //   console.log(err);
   // });
 
-  res.status(200).json({ message: 'Deleted Menu.' });
+  res.status(200).json({ message: "Deleted Menu." });
 };
 
 exports.getMenuById = getMenuById;

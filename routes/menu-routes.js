@@ -24,15 +24,10 @@ router.post(
     '/createMenu',
     // fileUpload.single('image'),
     [
-        check('id')
-            .not()
-            .isEmpty(),
         check('category')
             .not()
             .isEmpty(),
-        check('food')
-            .not()
-            .isEmpty(),
+        check('food'),
     ],
     menuController.createMenu
 );
