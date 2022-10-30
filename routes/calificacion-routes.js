@@ -1,31 +1,11 @@
 const express = require('express');
 const { check } = require('express-validator');
 
-const calificationController = require('../controllers/calification-controllers');
+const calificacionController = require('../controllers/calificacion-controllers');
 const fileUpload = require('../middleware/file-upload');
 
 const router = express.Router();
 
-router.get('/', calificationController.getUsers);
-
-router.post(
-  '/signup',
-  // fileUpload.single('image'),
-  [
-    check('name')
-      .not()
-      .isEmpty(),
-      check('lastName')
-      .not()
-      .isEmpty(),
-    check('email')
-      .normalizeEmail()
-      .isEmail(),
-    check('password').isLength({ min: 6 })
-  ],
-  usersController.signup
-);
-
-router.post('/login', usersController.login);
+router.post('/altaCalificacion', calificacionController.AltaCalificacion);
 
 module.exports = router;
