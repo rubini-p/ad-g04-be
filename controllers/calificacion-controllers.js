@@ -68,8 +68,7 @@ const ValidarFormulario = (params) => {
 
 //const ObtenerPromedioRestaurant
 //const ObtenerPromedioPorRestaurant
-//const ObtenerCalificacionesRestaurant
-
+//const ObtenerCalificacionesRestaurant : devolver array de todas las calificaciones 
 
 exports.AltaCalificacion = AltaCalificacion;
 //exports.ObtenerPromedioRestaurant = ObtenerPromedioRestaurant;
