@@ -6,8 +6,10 @@ const HttpError = require("../models/http-error");
 const Calificacion = require("../models/calificacion");
 const User = require("../models/user");
 const Restaurant = require("../models/restaurant");
+const calificacion = require("../models/calificacion");
 
 const AltaCalificacion = async (req, res, next) => {
+  console.log(req);
   let { restaurant_id, usuario_id, puntuacion, comentario, fecha } = req.body;
   //validar formulario
 
@@ -69,9 +71,30 @@ const ValidarFormulario = (params) => {
 //const ObtenerPromedioRestaurant
 //const ObtenerPromedioPorRestaurant
 //const ObtenerCalificacionesRestaurant : devolver array de todas las calificaciones 
+const ObtenerCalificacionesRestaurant= async (req, res, next) => {
+  let {restaurant} = req.params;
+  
+  let listByRestaurant;
+  try {
+    listByRestaurant = await calificacion.findOne({restaurant_id : restaurant});
+    console.log(listByRestaurant);
+  } catch (err) {
+    const error = new HttpError(
+      "No se encontraron calificaciones para el restaurante indicado",
+      500
+    );
+    return next(error);
+  }
+  res
+    .status(201)
+    .json(listByRestaurant);
+}
+
+
 
 exports.AltaCalificacion = AltaCalificacion;
+exports.ObtenerCalificacionesRestaurant = ObtenerCalificacionesRestaurant;
 //exports.ObtenerPromedioRestaurant = ObtenerPromedioRestaurant;
 //exports.ObtenerPromedioPorRestaurant = ObtenerPromedioPorRestaurant;
-//exports.ObtenerCalificacionesRestaurant = ObtenerCalificacionesRestaurant;
+
 
