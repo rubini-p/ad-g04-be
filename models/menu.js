@@ -4,8 +4,10 @@ const Schema = mongoose.Schema;
 
 
 const MenuSchema = new Schema({
-    category: { type: String, required: true }, 
-    food: [{ type: mongoose.Types.ObjectId, required: false, ref: 'Food' }]
+    category: { type: Array, required: false }, 
+    food: [{ type: mongoose.Types.ObjectId, required: false, ref: 'Food' }],
+    //guardar el ID del restaurant
+    restaurant: { type: mongoose.Types.ObjectId, required: true, ref: 'Restaurant' }
     });
 
 

@@ -22,56 +22,29 @@ router.get('/', menuController.getMenuById);
 
 router.post(
     '/createMenu',
-    // fileUpload.single('image'),
+    [
+        check('category')
+            .not()
+            .isEmpty(),
+        check('food'),
+        check('restaurant')
+            .not()
+            .isEmpty(),
+    ],
+    menuController.createMenu
+);
+
+router.post(
+    '/updateMenu',
     [
         check('category')
             .not()
             .isEmpty(),
         check('food'),
     ],
-    menuController.createMenu
-);
-/*
-router.patch(
-    '/:pid',
-    [
-        check('nombre_receta')
-            .not()
-            .isEmpty(),
-        check('ingredientes_ppal')
-            .not()
-            .isEmpty(),
-        check('ingredientes')
-            .not()
-            .isEmpty(),
-        check('categoria')
-            .not()
-            .isEmpty(),
-        check('dificultad')
-            .not()
-            .isEmpty(),
-        check('status')
-            .not()
-            .isEmpty(),
-        check('Proceso')
-            .not()
-            .isEmpty(),
-        check('Intro')
-            .not()
-            .isEmpty(),
-        check('rating')
-            .not()
-            .isEmpty(),
-        check('avatarUrl')
-            .not()
-            .isEmpty(),
-        check('coverUrl')
-            .not()
-            .isEmpty()
-    ],
-    recetasControllers.updateReceta
+    menuController.updateMenu
 );
 
-router.delete('/:pid', recetasControllers.deleteReceta);
-*/
+//router.delete('/:pid', menuControllers.delete);
+
 module.exports = router;
