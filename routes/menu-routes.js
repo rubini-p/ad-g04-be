@@ -27,9 +27,11 @@ router.post(
             .not()
             .isEmpty(),
         check('food'),
+        check('restaurant'),
+        /*
         check('restaurant')
             .not()
-            .isEmpty(),
+            .isEmpty(),*/
     ],
     menuController.createMenu
 );
@@ -45,6 +47,6 @@ router.post(
     menuController.updateMenu
 );
 
-//router.delete('/:pid', menuControllers.delete);
+router.delete('/:pid', menuController.deleteMenu);
 
 module.exports = router;

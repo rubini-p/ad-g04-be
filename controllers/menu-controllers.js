@@ -41,7 +41,7 @@ const getMenuById = async (req, res, next) => {
   const { menuId } = req.body;
   let existingMenu;
   try {
-    existingMenu = await Menu.findOne({ menuId: menuId })
+    existingMenu = await Menu.findOne({ _id: menuId })
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not find a Menu.",
@@ -102,7 +102,7 @@ const createMenu = async function (req, res, next) {
       new HttpError("Invalid inputs passed, please check your data.", 422)
     );
   }
-  const { id, category, food } = req.body;
+  const { id, category, menu } = req.body;
   //tenemos que pasarlo a una tabla
   const categoryAccepted = [
     "Promocion del Dia",
@@ -119,7 +119,7 @@ const createMenu = async function (req, res, next) {
   if (categoryAccepted.includes(category)) {
     const createdMenu = new Menu({
       category,
-      food,
+      menu,
     });
     console.log(createdMenu);
     try {
@@ -136,7 +136,7 @@ const createMenu = async function (req, res, next) {
       .json({
         menuId: createdMenu.id,
         category: createdMenu.category,
-        food: createdMenu.food,
+        menu: createdMenu.menu,
       });
   }else{
     //deberia ser un 404
@@ -182,42 +182,34 @@ const updateMenu = async (req, res, next) => {
 const deleteMenu = async (req, res, next) => {
   const menuId = req.params.pid;
 
-  let Menu;
+  let menu;
   try {
-    Menu = await Menu.findById(menuId).populate("creador");
+    menu = await Menu.findById(menuId);
   } catch (err) {
     const error = new HttpError(
-      "Something went wrong, could not delete Menu.",
+      "Something went wrong, could not delete menu.",
       500
     );
     return next(error);
   }
 
-  if (!Menu) {
-    const error = new HttpError("Could not find Menu for this id.", 404);
+  if (!menu) {
+    const error = new HttpError("Could not find menu for this id.", 404);
     return next(error);
   }
 
-  if (Menu.creador.id !== req.existingMenuData.existingMenuId) {
-    const error = new HttpError(
-      "You are not allowed to delete this Menu.",
-      401
-    );
-    return next(error);
-  }
-
-  // const imagePath = Menu.image;
+  // const imagePath = menu.image;
 
   try {
     // const sess = await mongoose.startSession();
     // sess.startTransaction();
-    await Menu.remove();
-    Menu.creador.menus.pull(Menu);
-    await Menu.creador.save();
+    await menu.remove();
+    //menu.creador.menus.pull(menu);
+    //await menu.creador.save();
     // await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
-      "Something went wrong, could not delete Menu.",
+      "Something went wrong, could not delete menu.",
       500
     );
     return next(error);
@@ -227,7 +219,7 @@ const deleteMenu = async (req, res, next) => {
   //   console.log(err);
   // });
 
-  res.status(200).json({ message: "Deleted Menu." });
+  res.status(200).json({ message: "Deleted menu." });
 };
 
 exports.getMenuById = getMenuById;

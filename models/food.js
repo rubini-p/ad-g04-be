@@ -12,7 +12,7 @@ const FoodSchema = new Schema({
     ingredients: { type: Array, required: false },
     isCeliac: { type: Boolean, required: false },
     isVegan: { type: Boolean, required: false },
-    menu: { type: mongoose.Types.ObjectId, required: true, ref: 'Menu' }
+    menuId: { type: mongoose.Types.ObjectId, required: true, ref: 'Menu' }
     });
 
 
