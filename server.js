@@ -12,6 +12,7 @@ const mongoose = require('mongoose');
 // const recetasRoutes = require('./routes/recetas-routes');
 const usersRoutes = require('./routes/users-routes');
 const calificacionRoutes = require('./routes/calificacion-routes');
+const restaurantsRoutes = require('./routes/restaurant-routes');
 const HttpError = require('./models/http-error');
 
 const app = express();
@@ -34,6 +35,8 @@ app.use((req, res, next) => {
 // app.use('/api/recetas', recetasRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/calificacion', calificacionRoutes);
+app.use('/api/restaurants', restaurantsRoutes);
+
 
 app.use((req, res, next) => {
     const error = new HttpError('Could not find this route.', 404);
