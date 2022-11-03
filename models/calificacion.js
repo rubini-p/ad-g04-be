@@ -5,11 +5,11 @@ const Schema = mongoose.Schema;
 const calificacionSchema = new Schema(
   {
     restaurant_id: {
-      type: Number,
+      type: String,
       required: true,
     },
     usuario_id: {
-      type: Number,
+      type: String,
       required: true,
     },
     puntuacion: {
