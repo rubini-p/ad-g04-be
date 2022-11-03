@@ -6,10 +6,10 @@ const fileUpload = require("../middleware/file-upload");
 
 const router = express.Router();
 
-router.post("/altaCalificacion", calificacionController.AltaCalificacion);
+router.post("/altaCalificacion", calificacionController.altaCalificacion);
 router.get(
   "/obtenerCalificaciones/:restaurant",
-  calificacionController.ObtenerCalificacionesRestaurant
+  calificacionController.obtenerCalificacionesRestaurant
 );
 
 module.exports = router;
