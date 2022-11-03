@@ -8,10 +8,10 @@ const User = require("../models/user");
 const Restaurant = require("../models/restaurant");
 const calificacion = require("../models/calificacion");
 
-const AltaCalificacion = async (req, res, next) => {
+const altaCalificacion = async (req, res, next) => {
   console.log(req);
   let { restaurant_id, usuario_id, puntuacion, comentario, fecha } = req.body;
-  if (ValidarFormulario) {
+  if (validarFormulario) {
     let usuario;
     try {
       usuario = await User.findById(usuario_id);
@@ -56,14 +56,14 @@ const AltaCalificacion = async (req, res, next) => {
   }
 };
 
-const ValidarFormulario = (params) => {
+const validarFormulario = (params) => {
   return true;
 };
 
 //const ObtenerPromedioRestaurant
 //const ObtenerPromedioPorRestaurant
 
-const ObtenerCalificacionesRestaurant = async (req, res, next) => {
+const obtenerCalificacionesRestaurant = async (req, res, next) => {
   let { restaurant } = req.params;
 
   let listByRestaurant;
@@ -82,7 +82,7 @@ const ObtenerCalificacionesRestaurant = async (req, res, next) => {
   res.status(201).json(listByRestaurant);
 };
 
-exports.AltaCalificacion = AltaCalificacion;
-exports.ObtenerCalificacionesRestaurant = ObtenerCalificacionesRestaurant;
+exports.altaCalificacion = altaCalificacion;
+exports.obtenerCalificacionesRestaurant = obtenerCalificacionesRestaurant;
 //exports.ObtenerPromedioRestaurant = ObtenerPromedioRestaurant;
 //exports.ObtenerPromedioPorRestaurant = ObtenerPromedioPorRestaurant;
