@@ -47,10 +47,19 @@ const createRestaurant = async (req, res, next) => {
     );
   }
 
-  const { restaurant_name } = req.body;
+  const { restaurant_name, address, latitude, longitude, open, close, isClosed, photos, foodType, priceRange } = req.body;
 
   const createdRestaurant = new Restaurant({
     restaurant_name,
+    address,
+    latitude,
+    longitude,
+    open,
+    close,
+    isClosed, // default value false
+    photos,
+    foodType,
+    priceRange,
     owner: req.userData.userId
   });
 
@@ -70,21 +79,8 @@ const createRestaurant = async (req, res, next) => {
     return next(error);
   }
 
-  console.log(user);
-
   try {
-    // const sess = await mongoose.startSession();
-    // console.log(sess)
-    // createdRestaurant
-    // console.log(sess.startTransaction());
-    // console.log("2")
-    // await createdReceta.save({ session: sess });
     await createdRestaurant.save();
-
-    // user.restaurants.push(createdRestaurant);
-    // await user.save();
-
-    // await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
       'Creating restaurant failed, please try again. no se por que falla',
@@ -104,7 +100,7 @@ const updateRestaurant = async (req, res, next) => {
     );
   }
 
-  const { restaurant_name } = req.body;
+  const { restaurant_name, address, latitude, longitude, open, close, isClosed, photos, foodType, priceRange } = req.body;
   const restaurantId = req.params.pid;
 
   let restaurant;
@@ -123,7 +119,35 @@ const updateRestaurant = async (req, res, next) => {
     return next(error);
   }
 
-  restaurant.restaurant_name = restaurant_name;
+  if (restaurant_name) {
+    restaurant.restaurant_name = restaurant_name;
+  }
+  if (address) {
+  restaurant.address = address;
+  }
+  if (latitude) {
+    restaurant.latitude = latitude;
+  }
+  if (longitude) {
+    restaurant.longitude = longitude;
+  }
+  // falta chequear como hacer si el array is empty
+  if (open) {
+    restaurant.open = open;
+  }
+  if (close) {
+    restaurant.close = close;
+  }
+  if (isClosed) {
+    restaurant.isClosed = isClosed; // default value false
+  }
+    // restaurant.photos = photos;
+  if (foodType) {
+    restaurant.foodType = foodType;
+  }
+  if (priceRange) {
+    restaurant.priceRange = priceRange;
+  }
 
   try {
     await restaurant.save();

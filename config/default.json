@@ -1,4 +1,4 @@
 {
-  "mongoURI": "mongodb://admin:passw0rd@localhost:27017/addb?retryWrites=true&w=majority&authSource=admin"
+  "mongoURI": "mongodb://admin:passw0rd@db.rubini.com.ar:27017/addb?retryWrites=true&w=majority&authSource=admin"
 }
 

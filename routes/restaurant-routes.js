@@ -23,7 +23,16 @@ router.post(
     [
         check('restaurant_name')
             .not()
-            .isEmpty()
+            .isEmpty()//,
+      //   check('address')
+      //     .not()
+      //     .isEmpty(),
+      // check('latitude')
+      //   .not()
+      //   .isEmpty(),
+      // check('longitude')
+      //   .not()
+      //   .isEmpty()
     ],
     restaurantController.createRestaurant
 );
