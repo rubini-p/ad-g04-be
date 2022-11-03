@@ -5,18 +5,7 @@ const { check } = require('express-validator');
 const menuController = require('../controllers/menu-controllers');
 const fileUpload = require('../middleware/file-upload');
 
-//const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
-/*
-router.get('/all', recetasControllers.getRecetas);
-
-
-router.get('/:pid', recetasControllers.getRecetaById);
-
-router.get('/user/:uid', recetasControllers.getRecetasByUserId);
-
-router.use(checkAuth);
-*/
 
 router.get('/', menuController.getMenuById);
 
@@ -27,11 +16,9 @@ router.post(
             .not()
             .isEmpty(),
         check('food'),
-        check('restaurant'),
-        /*
         check('restaurant')
             .not()
-            .isEmpty(),*/
+            .isEmpty(),
     ],
     menuController.createMenu
 );
