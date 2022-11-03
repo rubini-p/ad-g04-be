@@ -2,12 +2,12 @@
 const express = require('express');
 const { check } = require('express-validator');
 
-const recetasControllers = require('../controllers/recetas-controllers');
+const menuController = require('../controllers/menu-controllers');
 const fileUpload = require('../middleware/file-upload');
 
-const checkAuth = require('../middleware/check-auth');
+//const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
-
+/*
 router.get('/all', recetasControllers.getRecetas);
 
 
@@ -16,88 +16,37 @@ router.get('/:pid', recetasControllers.getRecetaById);
 router.get('/user/:uid', recetasControllers.getRecetasByUserId);
 
 router.use(checkAuth);
+*/
+
+router.get('/', menuController.getMenuById);
 
 router.post(
-    '/',
-    // fileUpload.single('image'),
+    '/createMenu',
     [
-        check('nombre_receta')
+        check('category')
             .not()
             .isEmpty(),
-        check('ingredientes_ppal')
+        check('food'),
+        check('restaurant'),
+        /*
+        check('restaurant')
             .not()
-            .isEmpty(),
-        check('ingredientes')
-            .not()
-            .isEmpty(),
-        check('categoria')
-            .not()
-            .isEmpty(),
-        check('dificultad')
-            .not()
-            .isEmpty(),
-        check('status')
-            .not()
-            .isEmpty(),
-        check('Proceso')
-            .not()
-            .isEmpty(),
-        check('Intro')
-            .not()
-            .isEmpty(),
-        check('rating')
-            .not()
-            .isEmpty(),
-        check('coverUrl')
-            .not()
-            .isEmpty(),
-        check('avatarUrl')
-            .not()
-            .isEmpty()
+            .isEmpty(),*/
     ],
-    recetasControllers.createReceta
+    menuController.createMenu
 );
 
-router.patch(
-    '/:pid',
+router.post(
+    '/updateMenu',
     [
-        check('nombre_receta')
+        check('category')
             .not()
             .isEmpty(),
-        check('ingredientes_ppal')
-            .not()
-            .isEmpty(),
-        check('ingredientes')
-            .not()
-            .isEmpty(),
-        check('categoria')
-            .not()
-            .isEmpty(),
-        check('dificultad')
-            .not()
-            .isEmpty(),
-        check('status')
-            .not()
-            .isEmpty(),
-        check('Proceso')
-            .not()
-            .isEmpty(),
-        check('Intro')
-            .not()
-            .isEmpty(),
-        check('rating')
-            .not()
-            .isEmpty(),
-        check('avatarUrl')
-            .not()
-            .isEmpty(),
-        check('coverUrl')
-            .not()
-            .isEmpty()
+        check('food'),
     ],
-    recetasControllers.updateReceta
+    menuController.updateMenu
 );
 
-router.delete('/:pid', recetasControllers.deleteReceta);
+router.delete('/:pid', menuController.deleteMenu);
 
 module.exports = router;

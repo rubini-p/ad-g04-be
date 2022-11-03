@@ -11,6 +11,8 @@ const mongoose = require('mongoose');
 
 // const recetasRoutes = require('./routes/recetas-routes');
 const usersRoutes = require('./routes/users-routes');
+const menuRoutes = require('./routes/menu-routes');
+const foodRoutes = require('./routes/food-routes');
 const calificacionRoutes = require('./routes/calificacion-routes');
 const HttpError = require('./models/http-error');
 
@@ -33,6 +35,8 @@ app.use((req, res, next) => {
 
 // app.use('/api/recetas', recetasRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/menu', menuRoutes);
+app.use('/api/food', foodRoutes);
 app.use('/api/calificacion', calificacionRoutes);
 
 app.use((req, res, next) => {

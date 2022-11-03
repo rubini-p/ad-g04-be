@@ -1,100 +1,152 @@
 // WIP Armar controller
 
-//pepe
-const fs = require('fs');
+//const fs = require('fs');
 
-const { validationResult } = require('express-validator');
-const mongoose = require('mongoose');
+const { validationResult } = require("express-validator");
+const mongoose = require("mongoose");
 
-const HttpError = require('../models/http-error');
-const Receta = require('../models/receta');
-const User = require('../models/user');
+const HttpError = require("../models/http-error");
+//const Menu = require('../models/Menu');
+const Menu = require("../models/menu");
 
-const getRecetas = async (req, res, next) => {
-  const recetaId = req.params.pid;
-  let recetasAll;
-  let recetas;
+/*const getMenu = async (req, res, next) => {
+  //const menuId = req.params.pid;
+  //let menusAll;
+  let menus;
   try {
-    recetas = await Receta.find();
-    console.log(recetas)
+    menus = await Menu.find();
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not find a receta.',
-        500
+      "Fetching menu failed, please try again later.",
+      500
     );
     return next(error);
   }
-
-  if (!recetas) {
+  
+  if (!menus) {
     const error = new HttpError(
-        'Could not find receta for the provided id.',
+        'Could not find Menu for the provided id.',
         404
     );
     return next(error);
   }
 
-  res.json({recetas});
-};
 
-const getRecetaById = async (req, res, next) => {
-  const recetaId = req.params.pid;
+  //res.json({menus});
+  res.json({ menus: menus.map((menu) => menu.toObject({ getters: true })) });
+};*/
 
-  let receta;
+const getMenuById = async (req, res, next) => {
+  //const menuId = req.params.pid;
+  const { menuId } = req.body;
+  let existingMenu;
   try {
-    receta = await Receta.findById(recetaId);
+    existingMenu = await Menu.findOne({ _id: menuId })
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not find a receta.',
+      "Something went wrong, could not find a Menu.",
       500
     );
     return next(error);
   }
 
-  if (!receta) {
+  if (!existingMenu) {
     const error = new HttpError(
-      'Could not find receta for the provided id.',
+      "Could not find Menu for the provided id.",
       404
     );
     return next(error);
   }
 
-  res.json({ receta: receta.toObject({ getters: true }) });
+  res.json({ Menu: existingMenu.toObject({ getters: true }) });
 };
-
-const getRecetasByUserId = async (req, res, next) => {
-  const userId = req.params.uid;
-  console.log(userId)
-  // let recetas;
-  let userWithRecetas;
+/*
+const getmenusByexistingMenuId = async (req, res, next) => {
+  const existingMenuId = req.params.uid;
+  console.log(existingMenuId)
+  // let menus;
+  let existingMenuWithmenus;
   try {
-    // userWithRecetas = await User.findById(userId).populate('recetas');
-    // userWithRecetas = await User.findById(userId).populate('recetas');
-    userWithRecetas = await User.findById(userId).populate('recetas');
-    console.log('pepe', userWithRecetas)
+    // existingMenuWithmenus = await existingMenu.findById(existingMenuId).populate('menus');
+    // existingMenuWithmenus = await existingMenu.findById(existingMenuId).populate('menus');
+    existingMenuWithmenus = await Menu.findById(existingMenuId).populate('menus');
+    console.log('pepe', existingMenuWithmenus)
   } catch (err) {
     console.log(err)
     const error = new HttpError(
-        'Fetching recetas failed, please try again later.',
+        'Fetching menus failed, please try again later.',
         500
     );
     return next(error);
   }
 
-  // if (!recetas || recetas.length === 0) {
-  if (!userWithRecetas || userWithRecetas.recetas.length === 0) {
+  // if (!menus || menus.length === 0) {
+  if (!existingMenuWithmenus || existingMenuWithmenus.menus.length === 0) {
     return next(
-        new HttpError('Could not find recetas for the provided user id.', 404)
+        new HttpError('Could not find menus for the provided existingMenu id.', 404)
     );
   }
 
   res.json({
-    recetas: userWithRecetas.recetas.map(receta =>
-        receta.toObject({ getters: true })
+    menus: existingMenuWithmenus.menus.map(Menu =>
+        Menu.toObject({ getters: true })
     )
   });
 };
+*/
 
-const createReceta = async (req, res, next) => {
+const createMenu = async function (req, res, next) {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError("Invalid inputs passed, please check your data.", 422)
+    );
+  }
+  const { id, category, menu } = req.body;
+  //tenemos que pasarlo a una tabla
+  const categoryAccepted = [
+    "Promocion del Dia",
+    "Entradas",
+    "Minutas",
+    "Ensaladas",
+    "Cafeteria",
+    "Carnes",
+    "Pizzas",
+    "Pescado",
+    "Pastas",
+    "Postres",
+  ];
+  if (categoryAccepted.includes(category)) {
+    const createdMenu = new Menu({
+      category,
+      menu,
+    });
+    console.log(createdMenu);
+    try {
+      await createdMenu.save();
+    } catch (err) {
+      const error = new HttpError(
+        "Signing up failed, please try again later.",
+        500
+      );
+      return next(error);
+    }
+    res
+      .status(201)
+      .json({
+        menuId: createdMenu.id,
+        category: createdMenu.category,
+        menu: createdMenu.menu,
+      });
+  }else{
+    //deberia ser un 404
+    const error = "La categoria ingresada no es valida.";
+    return next(error);
+  }
+};
+
+
+const updateMenu = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -102,158 +154,63 @@ const createReceta = async (req, res, next) => {
     );
   }
 
-  const { nombre_receta, ingredientes_ppal, ingredientes, categoria, dificultad, status, Proceso, Intro, rating, avatarUrl, coverUrl, creador } = req.body;
-
-  const createdReceta = new Receta({
-    nombre_receta,
-    ingredientes_ppal,
-    ingredientes,
-    categoria,
-    dificultad,
-    status,
-    Proceso,
-    Intro,
-    rating,
-    coverUrl,
-    avatarUrl,
-    creador: req.userData.userId
-  });
-
-  let user;
+  const { menuId, category } = req.body;
+  let menu;
   try {
-    user = await User.findById(req.userData.userId);
+    menu = await Menu.findById(menuId);
   } catch (err) {
     const error = new HttpError(
-        'Creating receta failed, please try again user not found.',
+        'Something went wrong, could not update menu.',
+        500
+    );
+    return next(error);
+  }
+  menu.category = category;
+  try {
+    await menu.save();
+  } catch (err) {
+    const error = new HttpError(
+        'Something went wrong, could not update menu.',
         500
     );
     return next(error);
   }
 
-  if (!user) {
-    const error = new HttpError('Could not find user for provided id.', 404);
-    return next(error);
-  }
-
-  console.log(user);
-
-  try {
-    // const sess = await mongoose.startSession();
-    // console.log(sess)
-    createdReceta
-    // console.log(sess.startTransaction());
-    // console.log("2")
-    // await createdReceta.save({ session: sess });
-    await createdReceta.save();
-    console.log("3")
-    user.recetas.push(createdReceta);
-    console.log("4")
-    await user.save();
-    console.log("5")
-    // await sess.commitTransaction();
-  } catch (err) {
-    const error = new HttpError(
-        'Creating receta failed, please try again. no se por que falla',
-        500
-    );
-    return next(error);
-  }
-
-  res.status(201).json({ receta: createdReceta });
+  res.status(200).json({ menu: menu.toObject({ getters: true }) });
 };
 
-const updateReceta = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return next(
-        new HttpError('Invalid inputs passed, please check your data.', 422)
-    );
-  }
+const deleteMenu = async (req, res, next) => {
+  const menuId = req.params.pid;
 
-  const { nombre_receta, ingredientes_ppal, ingredientes, categoria, dificultad, status, Proceso, Intro, rating, coverUrl, avatarUrl } = req.body;
-  const recetaId = req.params.pid;
-
-  let receta;
+  let menu;
   try {
-    receta = await Receta.findById(recetaId);
+    menu = await Menu.findById(menuId);
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not update receta.',
-        500
+      "Something went wrong, could not delete menu.",
+      500
     );
     return next(error);
   }
 
-  if (receta.creador.toString() !== req.userData.userId) {
-    const error = new HttpError('You are not allowed to edit this receta.', 401);
+  if (!menu) {
+    const error = new HttpError("Could not find menu for this id.", 404);
     return next(error);
   }
 
-  receta.nombre_receta = nombre_receta;
-  receta.ingredientes_ppal = ingredientes_ppal;
-  receta.ingredientes = ingredientes;
-  receta.categoria = categoria;
-  receta.dificultad = dificultad;
-  receta.status = status;
-  receta.Proceso = Proceso;
-  receta.Intro = Intro;
-  receta.rating = rating;
-  receta.coverUrl = coverUrl;
-  receta.avatarUrl = avatarUrl;
-
-  try {
-    await receta.save();
-  } catch (err) {
-    const error = new HttpError(
-        'Something went wrong, could not update receta.',
-        500
-    );
-    return next(error);
-  }
-
-  res.status(200).json({ receta: receta.toObject({ getters: true }) });
-};
-
-const deleteReceta = async (req, res, next) => {
-  const recetaId = req.params.pid;
-
-  let receta;
-  try {
-    receta = await Receta.findById(recetaId).populate('creador');
-  } catch (err) {
-    const error = new HttpError(
-        'Something went wrong, could not delete receta.',
-        500
-    );
-    return next(error);
-  }
-
-  if (!receta) {
-    const error = new HttpError('Could not find receta for this id.', 404);
-    return next(error);
-  }
-
-  if (receta.creador.id !== req.userData.userId) {
-    const error = new HttpError(
-        'You are not allowed to delete this receta.',
-        401
-    );
-    return next(error);
-  }
-
-  // const imagePath = receta.image;
+  // const imagePath = menu.image;
 
   try {
     // const sess = await mongoose.startSession();
     // sess.startTransaction();
-    await receta.remove();
-    receta.creador.recetas.pull(receta);
-    await receta.creador.save();
+    await menu.remove();
+    //menu.creador.menus.pull(menu);
+    //await menu.creador.save();
     // await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not delete receta.',
-        500
+      "Something went wrong, could not delete menu.",
+      500
     );
     return next(error);
   }
@@ -262,12 +219,12 @@ const deleteReceta = async (req, res, next) => {
   //   console.log(err);
   // });
 
-  res.status(200).json({ message: 'Deleted receta.' });
+  res.status(200).json({ message: "Deleted menu." });
 };
 
-exports.getRecetaById = getRecetaById;
-exports.getRecetas = getRecetas;
-exports.getRecetasByUserId = getRecetasByUserId;
-exports.createReceta = createReceta;
-exports.updateReceta = updateReceta;
-exports.deleteReceta = deleteReceta;
+exports.getMenuById = getMenuById;
+//exports.getmenus = getmenus;
+//exports.getmenusByexistingMenuId = getmenusByexistingMenuId;
+exports.createMenu = createMenu;
+exports.updateMenu = updateMenu;
+exports.deleteMenu = deleteMenu;
