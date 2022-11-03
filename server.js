@@ -12,6 +12,7 @@ const usersRoutes = require('./routes/users-routes');
 const menuRoutes = require('./routes/menu-routes');
 const foodRoutes = require('./routes/food-routes');
 const calificacionRoutes = require('./routes/calificacion-routes');
+const restaurantsRoutes = require('./routes/restaurant-routes');
 const HttpError = require('./models/http-error');
 
 const app = express();
@@ -33,6 +34,8 @@ app.use('/api/users', usersRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/food', foodRoutes);
 app.use('/api/calificacion', calificacionRoutes);
+app.use('/api/restaurants', restaurantsRoutes);
+
 
 app.use((req, res, next) => {
     const error = new HttpError('Could not find this route.', 404);
