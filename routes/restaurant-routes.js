@@ -28,46 +28,16 @@ router.post(
     restaurantController.createRestaurant
 );
 //
-// router.patch(
-//     '/:pid',
-//     [
-//         check('nombre_receta')
-//             .not()
-//             .isEmpty(),
-//         check('ingredientes_ppal')
-//             .not()
-//             .isEmpty(),
-//         check('ingredientes')
-//             .not()
-//             .isEmpty(),
-//         check('categoria')
-//             .not()
-//             .isEmpty(),
-//         check('dificultad')
-//             .not()
-//             .isEmpty(),
-//         check('status')
-//             .not()
-//             .isEmpty(),
-//         check('Proceso')
-//             .not()
-//             .isEmpty(),
-//         check('Intro')
-//             .not()
-//             .isEmpty(),
-//         check('rating')
-//             .not()
-//             .isEmpty(),
-//         check('avatarUrl')
-//             .not()
-//             .isEmpty(),
-//         check('coverUrl')
-//             .not()
-//             .isEmpty()
-//     ],
-//     restaurantControllers.updateRestaurant
-// );
-//
-// router.delete('/:pid', restaurantControllers.deleteRestaurant);
+router.patch(
+    '/:pid',
+    [
+        check('restaurant_name')
+            .not()
+            .isEmpty(),
+    ],
+    restaurantController.updateRestaurant
+);
+
+router.delete('/:pid', restaurantController.deleteRestaurant);
 
 module.exports = router;
