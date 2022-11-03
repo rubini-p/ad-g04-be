@@ -1,4 +1,3 @@
-// WIP, ver si faltan campos
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 
@@ -9,8 +8,6 @@ const userSchema = new Schema({
   lastName: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true, minlength: 6 },
-  // image: { type: String, required: true },
-  // recetas: [{ type: mongoose.Types.ObjectId, required: true, ref: 'Receta' }]
 
 });
 
