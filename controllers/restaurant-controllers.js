@@ -7,13 +7,10 @@ const mongoose = require('mongoose');
 const HttpError = require('../models/http-error');
 const Restaurant = require('../models/restaurant');
 const User = require('../models/user');
-const Receta = require("../models/receta");
 
 // ########################################################################
 
 const getRestaurants = async (req, res, next) => {
-  // const recetaId = req.params.pid;
-  // let recetasAll;
   let restaurants;
   try {
     restaurants = await Restaurant.find();
@@ -131,7 +128,6 @@ const updateRestaurant = async (req, res, next) => {
   if (longitude) {
     restaurant.longitude = longitude;
   }
-  // falta chequear como hacer si el array is empty
   if (open) {
     restaurant.open = open;
   }
@@ -219,9 +215,7 @@ const deleteRestaurant = async (req, res, next) => {
 
 
 
-// exports.getRecetaById = getRecetaById;
 exports.getRestaurants = getRestaurants;
-// exports.getRecetasByUserId = getRecetasByUserId;
 exports.createRestaurant = createRestaurant;
 exports.updateRestaurant = updateRestaurant;
 exports.deleteRestaurant = deleteRestaurant;
