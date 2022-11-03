@@ -1,5 +1,3 @@
-// WIP Armar el modelo de food
-
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
@@ -14,6 +12,5 @@ const FoodSchema = new Schema({
     isVegan: { type: Boolean, required: false },
     menuId: { type: mongoose.Types.ObjectId, required: true, ref: 'Menu' }
     });
-
 
 module.exports = mongoose.model('Food', FoodSchema);

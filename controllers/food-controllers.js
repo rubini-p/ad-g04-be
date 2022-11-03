@@ -1,19 +1,14 @@
-// WIP Armar controller
-
 const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 
 const HttpError = require("../models/http-error");
 const Food = require("../models/food");
 
-const getFoodByfood = async (req, res, next) => {
-  const { foodId } = req.body;
+const getFoodByMenu = async (req, res, next) => {
+  const { menuId } = req.body;
   let existingFood;
   try {
-    console.log("foodId", foodId)
-    existingFood = await Food.find({_id: foodId});
-    console.log("existingFood", existingFood)
-    //({ foodId: foodId })
+    existingFood = await Food.find({menuId: menuId});
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not find a food.",
@@ -30,7 +25,6 @@ const getFoodByfood = async (req, res, next) => {
     return next(error);
   }
   res.json({ existingFood: existingFood.map(food => food.toObject({ getters: true })) });
-  //res.json({ Food: existingFood.toObject({ getters: true }) });
 };
 
 const createFood = async function (req, res, next) {
@@ -40,11 +34,10 @@ const createFood = async function (req, res, next) {
         new HttpError("Invalid inputs passed, please check your data.", 422)
       );
     }
-    const { category, foodname, description, price, photos, ingredients, isCeliac, isVegan, foodId } = req.body;
+    const { category, foodname, description, price, photos, ingredients, isCeliac, isVegan, menuId } = req.body;
     const createdFood = new Food({
-        category, foodname, description, price, ingredients, isCeliac, isVegan, photos, foodId,
+        category, foodname, description, price, ingredients, isCeliac, isVegan, photos, menuId,
       });
-      console.log(createdFood);
       try {
         await createdFood.save();
       } catch (err) {
@@ -66,7 +59,7 @@ const createFood = async function (req, res, next) {
           ingredients: createdFood.ingredients,
           isCeliac: createdFood.isCeliac,
           isVegan: createdFood.isVegan,
-          foodId: createdFood.foodId,
+          menuId: createdFood.menuId,
         });
     
 };
@@ -78,7 +71,6 @@ const updateFood = async (req, res, next) => {
         new HttpError('Invalid inputs passed, please check your data.', 422)
     );
   }
-  console.log("hola")
   const { foodId, category, foodname, description, price, photos, ingredients, isCeliac, isVegan } = req.body;
   let food;
   try {
@@ -94,7 +86,6 @@ const updateFood = async (req, res, next) => {
   food.foodname = foodname;
   food.description = description;
   food.price = price;
-  //de esta manera estamos pisando la foto
   food.photos = photos;
   food.ingredients = ingredients;
   food.isCeliac = isCeliac;
@@ -115,7 +106,6 @@ const updateFood = async (req, res, next) => {
 
 const deleteFood = async (req, res, next) => {
   const foodId = req.params.pid;
-
   let food;
   try {
     food = await Food.findById(foodId);
@@ -132,15 +122,8 @@ const deleteFood = async (req, res, next) => {
     return next(error);
   }
 
-  // const imagePath = food.image;
-
   try {
-    // const sess = await mongoose.startSession();
-    // sess.startTransaction();
     await food.remove();
-    //food.creador.foods.pull(food);
-    //await food.creador.save();
-    // await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not delete food.",
@@ -148,15 +131,10 @@ const deleteFood = async (req, res, next) => {
     );
     return next(error);
   }
-
-  // fs.unlink(imagePath, err => {
-  //   console.log(err);
-  // });
-
   res.status(200).json({ message: "Deleted food." });
 };
 
 exports.createFood = createFood;
-exports.getFoodByfood = getFoodByfood; 
+exports.getFoodByMenu = getFoodByMenu; 
 exports.updateFood = updateFood;
 exports.deleteFood = deleteFood;
