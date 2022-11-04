@@ -2,7 +2,7 @@
 
 ## Description
 Morfando inc is an app that helps customers in order to find a restaurant near them.
-The most exciting part of it is that users can see ratings, prices, menus, all in the same place.
+The most exciting part of it is that users can see ratings, prices and menus, all in the same place.
 
 ## Dev Team
 - 1089968 - Rubini, Pablo
