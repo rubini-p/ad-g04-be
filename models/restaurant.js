@@ -7,8 +7,19 @@ const RestaurantSchema = new Schema({
         type: String,
     },
     address: { type: String },
-    latitude: { type: String },
-    longitude:  {type: String },
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }},
+    // location: {type: "Point" , coordinates: [Number] },
+    // latitude: { type: String },
+    // longitude:  {type: String },
     open: { type: [ String ] },
     close: { type: [ String ] },
     isClosed: { type: Boolean }, // default value false
