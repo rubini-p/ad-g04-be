@@ -45,7 +45,6 @@ const createRestaurant = async (req, res, next) => {
   }
 
   const { restaurant_name, address, latitude, longitude, open, close, isClosed, photos, foodType, priceRange } = req.body;
-
   const createdRestaurant = new Restaurant({
     restaurant_name,
     address,
@@ -54,7 +53,9 @@ const createRestaurant = async (req, res, next) => {
     open,
     close,
     isClosed, // default value false
-    photos,
+    coverImage: req.files['coverImage'][0].path,
+    image: req.files['image'].map(file => file.path),
+    // image: req.files.map(file => file.path),
     foodType,
     priceRange,
     owner: req.userData.userId

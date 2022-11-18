@@ -20,3 +20,10 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 5001
+          volumeMounts:
+            - name: node-persistent-storage
+              mountPath: /app/uploads/images
+      volumes:
+        - name: node-persistent-storage
+          persistentVolumeClaim:
+            claimName: node-pvc

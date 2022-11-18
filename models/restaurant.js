@@ -2,8 +2,6 @@
 
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-
-
 const RestaurantSchema = new Schema({
     restaurant_name: {
         type: String,
@@ -14,10 +12,10 @@ const RestaurantSchema = new Schema({
     open: { type: [ String ] },
     close: { type: [ String ] },
     isClosed: { type: Boolean }, // default value false
-    photos: { type: [ String ] },
+    coverImage: { type: String },
+    image: {type: [ String ]},
     foodType: { type: String },
     priceRange: { type: Number },
-    //creo que aca iria un menu con referencia al menu (ver consigna del tp)
     owner: { type: mongoose.Types.ObjectId, required: true, ref: 'User' }
   },
     {
