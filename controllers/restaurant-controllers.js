@@ -8,8 +8,6 @@ const HttpError = require('../models/http-error');
 const Restaurant = require('../models/restaurant');
 const User = require('../models/user');
 
-// ########################################################################
-
 const getRestaurants = async (req, res, next) => {
   let restaurants;
   try {
@@ -27,6 +25,39 @@ const getRestaurants = async (req, res, next) => {
     const error = new HttpError(
         'Could not find restaurants for the provided id.',
         404
+    );
+    return next(error);
+  }
+
+  res.json({restaurants});
+};
+
+const getRestaurantsNearMe = async (req, res, next) => {
+  let restaurants;
+  try {
+
+    restaurants = await Restaurant.find({
+      location:
+        { $near :
+            {
+              $geometry: { type: "Point",  coordinates: [ req.query.longitude, req.query.latitude ] },
+              $maxDistance: req.query.maxDistance
+            }
+        }
+    });
+    // console.log(restaurants)
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not find a receta.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!restaurants) {
+    const error = new HttpError(
+      'Could not find restaurants for the provided id.',
+      404
     );
     return next(error);
   }
@@ -212,8 +243,8 @@ const deleteRestaurant = async (req, res, next) => {
   res.status(200).json({ message: 'Deleted restaurant.' });
 };
 
-// ########################################################################
 exports.getRestaurants = getRestaurants;
+exports.getRestaurantsNearMe = getRestaurantsNearMe;
 exports.createRestaurant = createRestaurant;
 exports.updateRestaurant = updateRestaurant;
 exports.deleteRestaurant = deleteRestaurant;
