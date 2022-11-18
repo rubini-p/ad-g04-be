@@ -44,12 +44,12 @@ const createRestaurant = async (req, res, next) => {
     );
   }
 
-  const { restaurant_name, address, latitude, longitude, open, close, isClosed, photos, foodType, priceRange } = req.body;
+  const { restaurant_name, address, longitude, latitude, open, close, isClosed, foodType, priceRange } = req.body;
   const createdRestaurant = new Restaurant({
     restaurant_name,
     address,
-    latitude,
-    longitude,
+    // location: aux,
+    location: { "type": "Point", "coordinates": [longitude, latitude] },
     open,
     close,
     isClosed, // default value false
@@ -61,6 +61,7 @@ const createRestaurant = async (req, res, next) => {
     owner: req.userData.userId
   });
 
+  // console.log(createdRestaurant)
   let user;
   try {
     user = await User.findById(req.userData.userId);
@@ -81,7 +82,7 @@ const createRestaurant = async (req, res, next) => {
     await createdRestaurant.save();
   } catch (err) {
     const error = new HttpError(
-      'Creating restaurant failed, please try again. no se por que falla',
+      'Creating restaurant failed, please try again.',
       500
     );
     return next(error);
@@ -211,11 +212,7 @@ const deleteRestaurant = async (req, res, next) => {
   res.status(200).json({ message: 'Deleted restaurant.' });
 };
 
-
 // ########################################################################
-
-
-
 exports.getRestaurants = getRestaurants;
 exports.createRestaurant = createRestaurant;
 exports.updateRestaurant = updateRestaurant;
