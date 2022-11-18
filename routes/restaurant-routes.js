@@ -19,7 +19,7 @@ router.use(checkAuth);
 
 router.post(
     '/',
-    // fileUpload.single('image'),
+    fileUpload.fields([{ name: 'coverImage', maxCount: 1 }, { name: 'image', maxCount: 8 }]),
     [
         check('restaurant_name')
             .not()
