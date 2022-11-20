@@ -35,8 +35,8 @@ const altaCalificacion = async (req, res, next) => {
     }
 
     let calificacion = new Calificacion({
-      restaurant: restaurant,
-      usuario: usuario,
+      restaurant: restaurant_id,
+      usuario: usuario_id,
       puntuacion: puntuacion,
       comentario: comentario,
       fecha: fecha,
