@@ -65,8 +65,6 @@ const getRestaurantsNearMe = async (req, res, next) => {
   res.json({restaurants});
 };
 
-
-
 const createRestaurant = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -75,24 +73,22 @@ const createRestaurant = async (req, res, next) => {
     );
   }
 
-  const { restaurant_name, address, longitude, latitude, open, close, isClosed, foodType, priceRange } = req.body;
+  const { name, address, longitude, latitude, open, close, temporarilyClosed, kindOfFood,description, priceRange } = req.body;
   const createdRestaurant = new Restaurant({
-    restaurant_name,
+    name,
     address,
-    // location: aux,
     location: { "type": "Point", "coordinates": [longitude, latitude] },
     open,
     close,
-    isClosed, // default value false
-    coverImage: req.files['coverImage'][0].path,
-    image: req.files['image'].map(file => file.path),
-    // image: req.files.map(file => file.path),
-    foodType,
+    temporarilyClosed, // default value false
+    // coverImage: req.files['coverImage'][0].path,
+    // image: req.files['image'].map(file => file.path),
+    kindOfFood,
+    description,
     priceRange,
     owner: req.userData.userId
   });
 
-  // console.log(createdRestaurant)
   let user;
   try {
     user = await User.findById(req.userData.userId);

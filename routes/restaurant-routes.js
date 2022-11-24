@@ -20,9 +20,9 @@ router.use(checkAuth);
 
 router.post(
     '/',
-    fileUpload.fields([{ name: 'coverImage', maxCount: 1 }, { name: 'image', maxCount: 8 }]),
+    // fileUpload.fields([{ name: 'coverImage', maxCount: 1 }, { name: 'image', maxCount: 8 }]),
     [
-        check('restaurant_name')
+        check('name')
             .not()
             .isEmpty()//,
       //   check('address')
@@ -41,7 +41,7 @@ router.post(
 router.patch(
     '/:pid',
     [
-        check('restaurant_name')
+        check('name')
             .not()
             .isEmpty(),
     ],
