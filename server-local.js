@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const config = require('config');
 const db = config.get('mongoURI');
 
@@ -15,7 +17,13 @@ const calificacionRoutes = require('./routes/calificacion-routes');
 const restaurantsRoutes = require('./routes/restaurant-routes');
 const HttpError = require('./models/http-error');
 
+const key = fs.readFileSync('./cert/privkey.pem');
+const cert = fs.readFileSync('./cert/fullchain.pem');
+const https = require('https');
+
 const app = express();
+
+const server = https.createServer({key: key, cert: cert }, app);
 
 app.use(bodyParser.json());
 
@@ -60,7 +68,7 @@ app.use((error, req, res, next) => {
 mongoose
     .connect(db , {useNewUrlParser: true, useUnifiedTopology: true})
     .then(() => {
-        app.listen(5001);
+        server.listen(5001);
     })
     .catch(err => {
         console.log(err);
