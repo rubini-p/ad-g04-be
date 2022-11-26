@@ -1,7 +1,3 @@
-const { validationResult } = require("express-validator");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-
 const HttpError = require("../models/http-error");
 const Calificacion = require("../models/calificacion");
 const User = require("../models/user");
@@ -60,8 +56,27 @@ const validarFormulario = (params) => {
   return true;
 };
 
-//const ObtenerPromedioRestaurant
-//const ObtenerPromedioPorRestaurant
+const ObtenerPromedioRestaurant = async (req, res, next) => {
+  let { restaurant } = req.params;
+  let listOfCalifications = obtenerCalificacionesByID(restaurant);
+  if (listOfCalifications) {
+    let promedio = CalcularPromedio(listOfCalifications);
+    res.status(201).json({ promedio: promedio });
+  } else {
+    const error = new HttpError(
+      "No se pudo encontrar calificaciones para el restaurant indicado",
+      500
+    );
+    return next(error);
+  }
+};
+
+const ObtenerPromedioPorRestaurant = async (req, res, next) => {
+  let { restaurant } = req.params;
+  let listOfCalifications = obtenerCalificacionesByID(restaurant);
+
+  res.status(201).json(listOfCalifications);
+};
 
 const obtenerCalificacionesRestaurant = async (req, res, next) => {
   let { restaurant } = req.params;
@@ -82,7 +97,34 @@ const obtenerCalificacionesRestaurant = async (req, res, next) => {
   res.status(201).json(listByRestaurant);
 };
 
+const obtenerCalificacionesByID = async (restaurant_id) => {
+  let listOfCalifications;
+  try {
+    listOfCalifications = await calificacion.findOne({
+      restaurant_id: restaurant_id,
+    });
+    console.log(listOfCalifications);
+  } catch (err) {
+    const error = new HttpError(
+      "No se encontraron calificaciones para el restaurante indicado",
+      500
+    );
+    return null;
+  }
+  return listOfCalifications;
+};
+
+function CalcularPromedio(listOfCalifications) {
+  let total = 0;
+  let cantidad = 0;
+  for (const calificacion of listOfCalifications) {
+    total += calificacion.puntuacion;
+    cantidad++;
+  }
+  return total / cantidad;
+}
+
 exports.altaCalificacion = altaCalificacion;
 exports.obtenerCalificacionesRestaurant = obtenerCalificacionesRestaurant;
-//exports.ObtenerPromedioRestaurant = ObtenerPromedioRestaurant;
+exports.ObtenerPromedioRestaurant = ObtenerPromedioRestaurant;
 //exports.ObtenerPromedioPorRestaurant = ObtenerPromedioPorRestaurant;

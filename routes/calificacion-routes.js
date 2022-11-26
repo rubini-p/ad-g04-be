@@ -11,5 +11,9 @@ router.get(
   "/obtenerCalificaciones/:restaurant",
   calificacionController.obtenerCalificacionesRestaurant
 );
+router.get(
+  "/promedioByID/:restaurant",
+  calificacionController.ObtenerPromedioRestaurant
+);
 
 module.exports = router;
