@@ -36,12 +36,20 @@ const getRestaurantsNearMe = async (req, res, next) => {
   let restaurants;
   try {
 
+    let maxDistance;
+
+    if (!req.query.maxDistance) {
+      maxDistance = 1000
+    } else {
+      maxDistance = req.query.maxDistance
+    }
+    console.log(maxDistance)
     restaurants = await Restaurant.find({
       location:
         { $near :
             {
               $geometry: { type: "Point",  coordinates: [ req.query.longitude, req.query.latitude ] },
-              $maxDistance: req.query.maxDistance
+              $maxDistance: maxDistance
             }
         }
     });
@@ -73,18 +81,19 @@ const createRestaurant = async (req, res, next) => {
     );
   }
 
-  const { name, address, longitude, latitude, open, close, temporarilyClosed, kindOfFood,description, priceRange } = req.body;
+  const { name, address, longitude, latitude, openTime, closeTime, temporarilyClosed, grade, kindOfFood,description, priceRange } = req.body;
   const createdRestaurant = new Restaurant({
     name,
     address,
     location: { "type": "Point", "coordinates": [longitude, latitude] },
-    open,
-    close,
+    openTime,
+    closeTime,
     temporarilyClosed, // default value false
     // coverImage: req.files['coverImage'][0].path,
     // image: req.files['image'].map(file => file.path),
     kindOfFood,
     description,
+    grade,
     priceRange,
     owner: req.userData.userId
   });
@@ -126,7 +135,7 @@ const updateRestaurant = async (req, res, next) => {
     );
   }
 
-  const { restaurant_name, address, latitude, longitude, open, close, isClosed, photos, foodType, priceRange } = req.body;
+  const { restaurant_name, address, latitude, longitude, openTime, closeTime, isClosed, photos, grade,  foodType, priceRange } = req.body;
   const restaurantId = req.params.pid;
 
   let restaurant;
@@ -157,11 +166,11 @@ const updateRestaurant = async (req, res, next) => {
   if (longitude) {
     restaurant.longitude = longitude;
   }
-  if (open) {
-    restaurant.open = open;
+  if (openTime) {
+    restaurant.openTime = openTime;
   }
-  if (close) {
-    restaurant.close = close;
+  if (closeTime) {
+    restaurant.closeTime = closeTime;
   }
   if (isClosed) {
     restaurant.isClosed = isClosed; // default value false
@@ -173,7 +182,9 @@ const updateRestaurant = async (req, res, next) => {
   if (priceRange) {
     restaurant.priceRange = priceRange;
   }
-
+  if (grade) {
+    restaurant.grade = grade;
+  }
   try {
     await restaurant.save();
   } catch (err) {
