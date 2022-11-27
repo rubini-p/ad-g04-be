@@ -7,16 +7,13 @@ const fileUpload = require('../middleware/file-upload');
 const router = express.Router();
 
 router.get('/', usersController.getUsers);
+router.get('/:tkn', usersController.checkToken);
 
 router.post(
   '/signup',
   [
-    check('name')
-      .not()
-      .isEmpty(),
-      check('lastName')
-      .not()
-      .isEmpty(),
+    check('name'),
+      check('lastName'),
     check('email')
       .normalizeEmail()
       .isEmail(),
@@ -28,7 +25,7 @@ router.post(
 router.post('/login', usersController.login);
 
 router.post('/reset', usersController.reset);
-router.post('/reset/:userId/:token', usersController.resetPassword);
+router.post('/resetpassword', usersController.resetPassword);
 
 
 

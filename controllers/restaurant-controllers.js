@@ -238,6 +238,39 @@ const getRestaurantById = async (req, res, next) => {
 };
 
 
+const getRestaurantByUser = async (req, res, next) => {
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError('Invalid inputs passed, please check your data.', 422)
+    );
+  }
+
+  const restaurantId = req.params.rid;
+  let restaurant;
+
+  try {
+    // restaurant = await Restaurant.findById(restaurantId).populate('Menu');
+    restaurants = await Restaurant.find(req.params.uid).populate('menu');
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not get restaurant.',
+      500
+    );
+    return next(error);
+  }
+
+  // if (restaurant.owner.toString() !== req.userData.userId) {
+  //   const error = new HttpError('You are not allowed to edit this retaurant.', 401);
+  //   return next(error);
+  // }
+
+
+  res.status(200).json({ restaurants: restaurants.toObject({ getters: true }) });
+};
+
+
 const deleteRestaurant = async (req, res, next) => {
   const restaurantId = req.params.pid;
 
@@ -291,6 +324,7 @@ const deleteRestaurant = async (req, res, next) => {
 
 exports.getRestaurants = getRestaurants;
 exports.getRestaurantById = getRestaurantById;
+exports.getRestaurantByUser = getRestaurantByUser;
 exports.getRestaurantsNearMe = getRestaurantsNearMe;
 exports.createRestaurant = createRestaurant;
 exports.updateRestaurant = updateRestaurant;
