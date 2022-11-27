@@ -80,14 +80,17 @@ const createRestaurant = async (req, res, next) => {
     );
   }
 
-  const { name, address, openTime, closeTime, temporarilyClosed, grade, kindOfFood,description, priceRange } = req.body;
+  const { name, address, openTime, closeTime, temporarilyClosed, grade, kindOfFood, priceRange } = req.body;
 
   let aux = address.number + ' ' + address.street  + ' ' + address.state ;
   let coords = await Location(aux);
+  console.log(aux, coords)
+
   const createdRestaurant = new Restaurant({
     name,
     address,
     // funcion que obtenga lat y lng desde la address
+
     location: { "type": "Point", "coordinates": [coords.lng, coords.lat] },
     openTime,
     closeTime,
@@ -95,7 +98,6 @@ const createRestaurant = async (req, res, next) => {
     // coverImage: req.files['coverImage'][0].path,
     // image: req.files['image'].map(file => file.path),
     kindOfFood,
-    description,
     grade,
     priceRange,
     owner: req.userData.userId
@@ -126,7 +128,7 @@ const createRestaurant = async (req, res, next) => {
     );
     return next(error);
   }
-
+  console.log('created restaurant: ', createdRestaurant.name)
   res.status(201).json({ restaurant: createdRestaurant });
 };
 
@@ -238,25 +240,25 @@ const getRestaurantById = async (req, res, next) => {
 };
 
 
-const getRestaurantByUser = async (req, res, next) => {
+const getRestaurantsByUser = async (req, res, next) => {
 
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return next(
-      new HttpError('Invalid inputs passed, please check your data.', 422)
-    );
-  }
+  // const errors = validationResult(req);
+  // if (!errors.isEmpty()) {
+  //   return next(
+  //     new HttpError('Invalid inputs passed, please check your data.', 422)
+  //   );
+  // }
 
-  const restaurantId = req.params.rid;
-  let restaurant;
-
+  let restaurants;
+  console.log('params: ', req.params);
   try {
     // restaurant = await Restaurant.findById(restaurantId).populate('Menu');
-    restaurants = await Restaurant.find(req.params.uid).populate('menu');
+
+    restaurants = await Restaurant.find({ owner: req.params.uid});
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not get restaurant.',
-      500
+      510
     );
     return next(error);
   }
@@ -267,7 +269,7 @@ const getRestaurantByUser = async (req, res, next) => {
   // }
 
 
-  res.status(200).json({ restaurants: restaurants.toObject({ getters: true }) });
+  res.status(200).json({ restaurants: restaurants.map(restaurant => restaurant.toObject({ getters: true })) });
 };
 
 
@@ -324,7 +326,7 @@ const deleteRestaurant = async (req, res, next) => {
 
 exports.getRestaurants = getRestaurants;
 exports.getRestaurantById = getRestaurantById;
-exports.getRestaurantByUser = getRestaurantByUser;
+exports.getRestaurantsByUser = getRestaurantsByUser;
 exports.getRestaurantsNearMe = getRestaurantsNearMe;
 exports.createRestaurant = createRestaurant;
 exports.updateRestaurant = updateRestaurant;

@@ -29,7 +29,8 @@ router.post('/reset', usersController.reset);
 router.post('/resetpassword', usersController.resetPassword);
 
 router.use(checkAuth);
-router.delete('/', usersController.deleteAccount)
+router.patch('/edit', usersController.editUser);
+router.delete('/', usersController.deleteAccount);
 router.post('/changepassword', usersController.changePassword);
 
 

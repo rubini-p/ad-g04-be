@@ -103,6 +103,72 @@ const signup = async (req, res, next) => {
     .json({ userId: createdUser.id, email: createdUser.email, token: token });
 };
 
+
+
+const editUser = async (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError('Invalid inputs passed, please check your data.', 422)
+    );
+  }
+
+  const { name, email, photo, defaultImage, favorite } = req.body;
+
+  let existingUser;
+  try {
+    existingUser = await User.findById(req.userData.userId);
+  } catch (err) {
+    const error = new HttpError(
+      'Signing up failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!existingUser) {
+    const error = new HttpError(
+      'User does not exist, please signup instead.',
+      422
+    );
+    return next(error);
+  }
+
+  if (name) {
+    existingUser.name = name;
+  };
+  if (email) {
+    existingUser.email = email;
+  };
+  if (photo) {
+    existingUser.photo = photo;
+  };
+  if (defaultImage) {
+    existingUser.defaultImage = defaultImage;
+  };
+  if (favorite) {
+    existingUser.favorite = favorite;
+  };
+
+  try {
+    await existingUser.save();
+  } catch (err) {
+    const error = new HttpError(
+      'Signing up failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  res
+    .status(201)
+    .json({ message: 'user updated' });
+};
+
+
+
+
+
 const login = async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -286,7 +352,7 @@ const resetPassword = async (req, res) => {
 
 const changePassword = async (req, res, next) => {
 
-  const { oldPassword, newPassword } = req.body;
+  const { currentPassword, newPassword } = req.body;
 
   let existingUser;
 
@@ -310,7 +376,7 @@ const changePassword = async (req, res, next) => {
 
   let isValidPassword = false;
   try {
-    isValidPassword = await bcrypt.compare(oldPassword, existingUser.password);
+    isValidPassword = await bcrypt.compare(currentPassword, existingUser.password);
   } catch (err) {
     const error = new HttpError(
       'Could not log you in, please check your credentials and try again.',
@@ -386,6 +452,7 @@ const checkToken = async (req, res) => {
   }
 }
 
+exports.editUser = editUser;
 exports.getUsers = getUsers;
 exports.signup = signup;
 exports.checkToken = checkToken;
