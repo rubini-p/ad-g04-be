@@ -7,7 +7,8 @@ metadata:
   namespace: ad-dev
 spec:
   ports:
-    - port: 5001
+    - name: node
+      port: 5001
       protocol: TCP
       targetPort: 5001
   selector:
