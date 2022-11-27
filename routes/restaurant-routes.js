@@ -10,7 +10,7 @@ const router = express.Router();
 
 router.get('/all', restaurantController.getRestaurants);
 router.get('/:rid', restaurantController.getRestaurantById);
-router.get('/:uid', restaurantController.getRestaurantByUser);
+router.get('/user/:uid', restaurantController.getRestaurantByUser);
 router.get('/nearme', restaurantController.getRestaurantsNearMe);
 
 // router.get('/:pid', restaurantController.getRestaurantById);
