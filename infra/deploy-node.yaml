@@ -23,7 +23,28 @@ spec:
           volumeMounts:
             - name: node-persistent-storage
               mountPath: /app/uploads/images
+            - name: cert
+              mountPath: /app/cert
+          env:
+            - name: USR
+              valueFrom:
+                secretKeyRef:
+                  name: smtp
+                  key: USR
+            - name: PASS
+              valueFrom:
+                secretKeyRef:
+                  name: smtp
+                  key: PASS
+            - name: SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: smtp
+                  key: SERVER
       volumes:
         - name: node-persistent-storage
           persistentVolumeClaim:
             claimName: node-pvc
+        - name: cert
+          secret:
+            secretName: cert

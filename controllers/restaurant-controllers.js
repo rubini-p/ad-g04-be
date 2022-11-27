@@ -3,7 +3,7 @@ const fs = require('fs');
 
 const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
-
+const Location = require('../utils/location');
 const HttpError = require('../models/http-error');
 const Restaurant = require('../models/restaurant');
 const User = require('../models/user');
@@ -12,7 +12,6 @@ const getRestaurants = async (req, res, next) => {
   let restaurants;
   try {
     restaurants = await Restaurant.find();
-    console.log(restaurants)
   } catch (err) {
     const error = new HttpError(
         'Something went wrong, could not find a receta.',
@@ -81,11 +80,15 @@ const createRestaurant = async (req, res, next) => {
     );
   }
 
-  const { name, address, longitude, latitude, openTime, closeTime, temporarilyClosed, grade, kindOfFood,description, priceRange } = req.body;
+  const { name, address, openTime, closeTime, temporarilyClosed, grade, kindOfFood,description, priceRange } = req.body;
+
+  let aux = address.number + ' ' + address.street  + ' ' + address.state ;
+  let coords = await Location(aux);
   const createdRestaurant = new Restaurant({
     name,
     address,
-    location: { "type": "Point", "coordinates": [longitude, latitude] },
+    // funcion que obtenga lat y lng desde la address
+    location: { "type": "Point", "coordinates": [coords.lng, coords.lat] },
     openTime,
     closeTime,
     temporarilyClosed, // default value false
@@ -128,6 +131,7 @@ const createRestaurant = async (req, res, next) => {
 };
 
 const updateRestaurant = async (req, res, next) => {
+
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -135,9 +139,8 @@ const updateRestaurant = async (req, res, next) => {
     );
   }
 
-  const { restaurant_name, address, latitude, longitude, openTime, closeTime, isClosed, photos, grade,  foodType, priceRange } = req.body;
+  const { name, address, longitude, latitude, openTime, closeTime, temporarilyClosed, grade, kindOfFood,description, priceRange  } = req.body;
   const restaurantId = req.params.pid;
-
   let restaurant;
   try {
     restaurant = await Restaurant.findById(restaurantId);
@@ -154,30 +157,31 @@ const updateRestaurant = async (req, res, next) => {
     return next(error);
   }
 
-  if (restaurant_name) {
-    restaurant.restaurant_name = restaurant_name;
+  if (name) {
+    restaurant.name = name
   }
   if (address) {
   restaurant.address = address;
+  let aux = address.number + ' ' + address.street  + ' ' + address.state ;
+  console.log(aux);
+  let coords = await Location(aux);
+  console.log(coords);
+    // 2216 virrey del pino buenos aires");
+  restaurant.location = { "type": "Point", "coordinates": [coords.lng, coords.lat]
   }
-  if (latitude) {
-    restaurant.latitude = latitude;
-  }
-  if (longitude) {
-    restaurant.longitude = longitude;
-  }
+}
   if (openTime) {
     restaurant.openTime = openTime;
   }
   if (closeTime) {
     restaurant.closeTime = closeTime;
   }
-  if (isClosed) {
-    restaurant.isClosed = isClosed; // default value false
+  if (temporarilyClosed) {
+    restaurant.temporarilyClosed = temporarilyClosed; // default value false
   }
     // restaurant.photos = photos;
-  if (foodType) {
-    restaurant.foodType = foodType;
+  if (kindOfFood) {
+    restaurant.kindOfFood = kindOfFood;
   }
   if (priceRange) {
     restaurant.priceRange = priceRange;
@@ -185,6 +189,7 @@ const updateRestaurant = async (req, res, next) => {
   if (grade) {
     restaurant.grade = grade;
   }
+
   try {
     await restaurant.save();
   } catch (err) {

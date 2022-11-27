@@ -20,10 +20,12 @@ const HttpError = require('./models/http-error');
 const key = fs.readFileSync('./cert/privkey.pem');
 const cert = fs.readFileSync('./cert/fullchain.pem');
 const https = require('https');
+const http = require('http');
 
 const app = express();
 
-const server = https.createServer({key: key, cert: cert }, app);
+const httpsServer = https.createServer({key: key, cert: cert }, app);
+const httpServer = http.createServer(app);
 
 app.use(bodyParser.json());
 
@@ -32,8 +34,8 @@ app.use('/uploads/images', express.static(path.join('uploads', 'images')));
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader(
-        'Access-Control-Allow-Headers',
-        'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept, Authorization'
     );
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
 
@@ -66,12 +68,13 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
-    .connect(db , {useNewUrlParser: true, useUnifiedTopology: true})
-    .then(() => {
-        server.listen(5001);
-    })
-    .catch(err => {
-        console.log(err);
-    });
+  .connect(db , {useNewUrlParser: true, useUnifiedTopology: true})
+  .then(() => {
+      httpsServer.listen(5502);
+      httpServer.listen(5001);
+  })
+  .catch(err => {
+      console.log(err);
+  });
 
 
