@@ -1,5 +1,4 @@
 // WIP Armar modelo restaurnt
-
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const RestaurantSchema = new Schema({
@@ -57,7 +56,8 @@ const RestaurantSchema = new Schema({
   kindOfFood: { type:  String  },
   priceRange: { type: Number },
   grade: { type: Number },
-  owner: { type: mongoose.Types.ObjectId, required: true, ref: 'User' }
+  owner: { type: mongoose.Types.ObjectId, required: true, ref: 'User' },
+  menu: { type: mongoose.Types.ObjectId, required: true, ref: 'Menu' }
   },
   {
     versionKey: false,
