@@ -35,7 +35,7 @@ const createMenu = async function (req, res, next) {
       new HttpError("Invalid inputs passed, please check your data.", 422)
     );
   }
-  const { id, category, menu } = req.body;
+  const { restaurant, category, menu } = req.body;
   const categoryAccepted = [
     "Promocion del Dia",
     "Entradas",
@@ -52,6 +52,7 @@ const createMenu = async function (req, res, next) {
     const createdMenu = new Menu({
       category,
       menu,
+      restaurant
     });
     try {
       await createdMenu.save();
@@ -64,11 +65,7 @@ const createMenu = async function (req, res, next) {
     }
     res
       .status(201)
-      .json({
-        menuId: createdMenu.id,
-        category: createdMenu.category,
-        menu: createdMenu.menu,
-      });
+      .json({ menu: createdMenu.toObject({ getters: true }) });
   }else{
     const error = "La categoria ingresada no es valida.";
     return next(error);

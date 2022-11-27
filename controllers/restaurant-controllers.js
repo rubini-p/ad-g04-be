@@ -131,15 +131,14 @@ const createRestaurant = async (req, res, next) => {
 };
 
 const updateRestaurant = async (req, res, next) => {
-
-  const errors = validationResult(req);
+  const errors = validationResult(req.body);
   if (!errors.isEmpty()) {
     return next(
       new HttpError('Invalid inputs passed, please check your data.', 422)
     );
   }
 
-  const { name, address, longitude, latitude, openTime, closeTime, temporarilyClosed, grade, kindOfFood,description, priceRange  } = req.body;
+  const { name, address, menu, openTime, closeTime, temporarilyClosed, grade, kindOfFood, priceRange  } = req.body;
   const restaurantId = req.params.pid;
   let restaurant;
   try {
@@ -189,6 +188,9 @@ const updateRestaurant = async (req, res, next) => {
   if (grade) {
     restaurant.grade = grade;
   }
+  if (menu) {
+    restaurant.menu = menu;
+  }
 
   try {
     await restaurant.save();
@@ -199,6 +201,38 @@ const updateRestaurant = async (req, res, next) => {
     );
     return next(error);
   }
+
+  res.status(200).json({ restaurant: restaurant.toObject({ getters: true }) });
+};
+
+const getRestaurantById = async (req, res, next) => {
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError('Invalid inputs passed, please check your data.', 422)
+    );
+  }
+
+  const restaurantId = req.params.rid;
+  let restaurant;
+
+  try {
+    // restaurant = await Restaurant.findById(restaurantId).populate('Menu');
+    restaurant = await Restaurant.findById(restaurantId).populate('menu');
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not get restaurant.',
+      500
+    );
+    return next(error);
+  }
+
+  // if (restaurant.owner.toString() !== req.userData.userId) {
+  //   const error = new HttpError('You are not allowed to edit this retaurant.', 401);
+  //   return next(error);
+  // }
+
 
   res.status(200).json({ restaurant: restaurant.toObject({ getters: true }) });
 };
@@ -256,6 +290,7 @@ const deleteRestaurant = async (req, res, next) => {
 };
 
 exports.getRestaurants = getRestaurants;
+exports.getRestaurantById = getRestaurantById;
 exports.getRestaurantsNearMe = getRestaurantsNearMe;
 exports.createRestaurant = createRestaurant;
 exports.updateRestaurant = updateRestaurant;
