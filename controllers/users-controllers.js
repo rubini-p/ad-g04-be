@@ -7,6 +7,7 @@ const HttpError = require('../models/http-error');
 const User = require('../models/user');
 const sendEmail = require("../utils/sendEmail");
 const Token = require("../models/token");
+const Restaurant = require("../models/restaurant");
 
 const getUsers = async (req, res, next) => {
   let users;
@@ -159,12 +160,58 @@ const login = async (req, res, next) => {
     );
     return next(error);
   }
-
+  console.log('login successfull: ', existingUser.email)
   res.json({
+    name: existingUser.name,
     userId: existingUser.id,
     email: existingUser.email,
-    token: token
+    token: token,
+    favorite: existingUser.favorite,
+    photo: existingUser.photo,
+    defaultImage: existingUser.defaultImage,
+    isAdmin: existingUser.isAdmin,
   });
+};
+
+const deleteAccount = async (req, res, next) => {
+  let user;
+  try {
+    user = await User.findById(req.userData.userId);
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not delete User.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!user) {
+    const error = new HttpError('Could not find User for this id.', 404);
+    return next(error);
+  }
+
+  if (user.id !== req.userData.userId) {
+    const error = new HttpError(
+      'You are not allowed to delete this User.',
+      401
+    );
+    return next(error);
+  }
+
+  try {
+    console.log('falle en el user remove');
+    await user.remove();
+    console.log('falle en el user remove');
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not delete user.',
+      500
+    );
+    return next(error);
+  }
+
+  console.log('Deleted user: ', user.email)
+  res.status(200).json({ message: 'Deleted Account.' });
 };
 
 const reset = async (req, res, next) => {
@@ -237,6 +284,90 @@ const resetPassword = async (req, res) => {
   }
 }
 
+const changePassword = async (req, res, next) => {
+
+  const { oldPassword, newPassword } = req.body;
+
+  let existingUser;
+
+  try {
+    existingUser = await User.findById(req.userData.userId);
+  } catch (err) {
+    const error = new HttpError(
+      'Password change failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!existingUser) {
+    const error = new HttpError(
+      'User does not exist',
+      403
+    );
+    return next(error);
+  }
+
+  let isValidPassword = false;
+  try {
+    isValidPassword = await bcrypt.compare(oldPassword, existingUser.password);
+  } catch (err) {
+    const error = new HttpError(
+      'Could not log you in, please check your credentials and try again.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!isValidPassword) {
+    const error = new HttpError(
+      'Actual password is wrong',
+      403
+    );
+    return next(error);
+  }
+  let hashedPassword;
+  try {
+    hashedPassword = await bcrypt.hash(newPassword, 12);
+    existingUser.password = hashedPassword;
+  } catch (err) {
+    const error = new HttpError(
+      'Could not create user, please try again.',
+      500
+    );
+    return next(error);
+  }
+
+  try {
+    await existingUser.save();
+  } catch (err) {
+    const error = new HttpError(
+      'Changing password failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: existingUser.id, email: existingUser.email },
+      'supersecret_dont_share',
+      // { expiresIn: '1h' }
+    );
+  } catch (err) {
+    const error = new HttpError(
+      'Signing up failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+  console.log('password changed: ', existingUser.email);
+  res
+    .status(201)
+    .json({ userId: existingUser.id, email: existingUser.email, token: token });
+}
+
 const checkToken = async (req, res) => {
   try {
     // const schema = Joi.object({ password: Joi.string().required() });
@@ -258,6 +389,8 @@ const checkToken = async (req, res) => {
 exports.getUsers = getUsers;
 exports.signup = signup;
 exports.checkToken = checkToken;
+exports.deleteAccount = deleteAccount;
 exports.login = login;
 exports.reset = reset;
+exports.changePassword = changePassword;
 exports.resetPassword = resetPassword;

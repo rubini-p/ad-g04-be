@@ -3,6 +3,7 @@ const { check } = require('express-validator');
 
 const usersController = require('../controllers/users-controllers');
 const fileUpload = require('../middleware/file-upload');
+const checkAuth = require("../middleware/check-auth");
 
 const router = express.Router();
 
@@ -27,6 +28,9 @@ router.post('/login', usersController.login);
 router.post('/reset', usersController.reset);
 router.post('/resetpassword', usersController.resetPassword);
 
+router.use(checkAuth);
+router.delete('/', usersController.deleteAccount)
+router.post('/changepassword', usersController.changePassword);
 
 
 module.exports = router;
