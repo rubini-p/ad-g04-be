@@ -30,7 +30,7 @@ const signup = async (req, res, next) => {
     );
   }
 
-  const { name, lastName, email, password } = req.body;
+  const { name, email, password, photo, isAdmin, defaultImage, favorite } = req.body;
 
   let existingUser;
   try {
@@ -64,9 +64,12 @@ const signup = async (req, res, next) => {
 
   const createdUser = new User({
     name,
-    lastName,
     email,
     password: hashedPassword,
+    favorite,
+    isAdmin,
+    photo,
+    defaultImage
   });
 
   try {
@@ -198,23 +201,32 @@ const reset = async (req, res, next) => {
   }
 }
 
-
 const resetPassword = async (req, res) => {
   try {
-    const schema = Joi.object({ password: Joi.string().required() });
+    const schema = Joi.object({ password: Joi.string().required(), email: Joi.string().required(), tkn: Joi.string().required() });
     const { error } = schema.validate(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    const user = await User.findById(req.params.userId);
-    if (!user) return res.status(400).send("invalid link or expired1");
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) return res.status(400).send("invalid link or expired");
 
     const token = await Token.findOne({
       userId: user._id,
-      token: req.params.token,
+      token: req.body.tkn,
     });
-    if (!token) return res.status(400).send("Invalid link or expired2");
+    if (!token) return res.status(400).send("Invalid link or expired");
 
-    user.password = req.body.password;
+    let hashedPassword;
+    try {
+      hashedPassword = await bcrypt.hash(req.body.password, 12);
+    } catch (err) {
+      const error = new HttpError(
+        'Could not create user, please try again.',
+        500
+      );
+      return next(error);
+    }
+    user.password = hashedPassword;
     await user.save();
     await token.delete();
 
@@ -225,8 +237,27 @@ const resetPassword = async (req, res) => {
   }
 }
 
+const checkToken = async (req, res) => {
+  try {
+    // const schema = Joi.object({ password: Joi.string().required() });
+    // const { error } = schema.validate(req.body);
+    // if (error) return res.status(400).send(error.details[0].message);
+    console.log('checking token');
+    const token = await Token.findOne({
+      token: req.params.tkn,
+    });
+    if (!token) return res.status(400).send("Invalid link or expired2");
+
+    res.send("valid token");
+  } catch (error) {
+    res.send("An error occured");
+    console.log(error);
+  }
+}
+
 exports.getUsers = getUsers;
 exports.signup = signup;
+exports.checkToken = checkToken;
 exports.login = login;
 exports.reset = reset;
 exports.resetPassword = resetPassword;
