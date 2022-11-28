@@ -24,8 +24,6 @@ const http = require('http');
 
 const app = express();
 
-const httpsServer = https.createServer({key: key, cert: cert }, app);
-const httpServer = http.createServer(app);
 
 app.use(bodyParser.json());
 
@@ -47,6 +45,9 @@ app.use('/api/menu', menuRoutes);
 app.use('/api/food', foodRoutes);
 app.use('/api/calificacion', calificacionRoutes);
 app.use('/api/restaurants', restaurantsRoutes);
+
+const httpsServer = https.createServer({key: key, cert: cert }, app);
+const httpServer = http.createServer(app);
 
 
 app.use((req, res, next) => {

@@ -16,11 +16,11 @@ const RestaurantSchema = new Schema({
     type: {
       type: String,
       enum: ['Point'],
-      required: true
+      required: false
     },
     coordinates: {
       type: [Number],
-      required: true
+      required: false
     }},
   openTime: { type: {
     monday: {type: Number},
@@ -57,7 +57,7 @@ const RestaurantSchema = new Schema({
   priceRange: { type: Number },
   grade: { type: Number },
   owner: { type: mongoose.Types.ObjectId, required: true, ref: 'User' },
-  menu: { type: mongoose.Types.ObjectId, required: true, ref: 'Menu' }
+  menu: { type: mongoose.Types.ObjectId, required: false, ref: 'Menu' }
   },
   {
     versionKey: false,
