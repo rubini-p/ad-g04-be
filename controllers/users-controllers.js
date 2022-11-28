@@ -106,6 +106,7 @@ const signup = async (req, res, next) => {
 
 
 const editUser = async (req, res, next) => {
+  console.log('editing user.. ');
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -119,6 +120,7 @@ const editUser = async (req, res, next) => {
   try {
     existingUser = await User.findById(req.userData.userId);
   } catch (err) {
+    console.log('token');
     const error = new HttpError(
       'Signing up failed, please try again later.',
       500
@@ -141,7 +143,7 @@ const editUser = async (req, res, next) => {
     existingUser.email = email;
   };
   if (photo) {
-    existingUser.photo = photo;
+    existingUser.photo = new Buffer(photo,"base64");
   };
   if (defaultImage) {
     existingUser.defaultImage = defaultImage;
@@ -160,6 +162,7 @@ const editUser = async (req, res, next) => {
     return next(error);
   }
 
+  console.log('user updated: ', existingUser.email);
   res
     .status(201)
     .json({ message: 'user updated' });

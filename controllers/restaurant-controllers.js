@@ -32,6 +32,7 @@ const getRestaurants = async (req, res, next) => {
 };
 
 const getRestaurantsNearMe = async (req, res, next) => {
+  console.log('nearme...');
   let restaurants;
   try {
 
@@ -224,7 +225,7 @@ const getRestaurantById = async (req, res, next) => {
     restaurant = await Restaurant.findById(restaurantId).populate('menu');
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not get restaurant.',
+      'Something went wrong, could not get restaurant1.',
       500
     );
     return next(error);
@@ -239,15 +240,14 @@ const getRestaurantById = async (req, res, next) => {
   res.status(200).json({ restaurant: restaurant.toObject({ getters: true }) });
 };
 
-
 const getRestaurantsByUser = async (req, res, next) => {
 
-  // const errors = validationResult(req);
-  // if (!errors.isEmpty()) {
-  //   return next(
-  //     new HttpError('Invalid inputs passed, please check your data.', 422)
-  //   );
-  // }
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError('Invalid inputs passed, please check your data.', 422)
+    );
+  }
 
   let restaurants;
   console.log('params: ', req.params);
@@ -257,7 +257,7 @@ const getRestaurantsByUser = async (req, res, next) => {
     restaurants = await Restaurant.find({ owner: req.params.uid});
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not get restaurant.',
+      'Something went wrong, could not get restaurant2.',
       510
     );
     return next(error);
@@ -271,7 +271,6 @@ const getRestaurantsByUser = async (req, res, next) => {
 
   res.status(200).json({ restaurants: restaurants.map(restaurant => restaurant.toObject({ getters: true })) });
 };
-
 
 const deleteRestaurant = async (req, res, next) => {
   const restaurantId = req.params.pid;

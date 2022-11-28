@@ -10,7 +10,7 @@ const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 
 router.get('/all', restaurantController.getRestaurants);
-router.get('/:rid', restaurantController.getRestaurantById);
+router.get('/id/:rid', restaurantController.getRestaurantById);
 router.get('/user/:uid', restaurantController.getRestaurantsByUser);
 router.get('/nearme', restaurantController.getRestaurantsNearMe);
 
