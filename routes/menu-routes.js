@@ -9,6 +9,8 @@ const router = express.Router();
 
 router.get('/', menuController.getMenuById);
 
+router.get('/getmenucategories', menuController.getMenuCategories);
+
 router.post(
     '/createMenu',
     [
