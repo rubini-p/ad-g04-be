@@ -41,23 +41,21 @@ const altaCalificacion = async (req, res, next) => {
     console.log("esta es la calificacion creada: ", calificacion)
 
     // #### obtener promedio
-    califList = await Calificacion.find({ restaurant_id: calificacion.restaurant_id} );
 
     // avg = await Calificacion.find({restaurant_id: req.body.restaurant_id})
+    console.log('rid: ',req.body.restaurant_id )
+    const avg = await Calificacion.aggregate(
+      [
+        { $match : { restaurant_id: "req.body.restaurant_id } },
+        {$group:{_id: "$restaurant_id",
+            avg: { $avg: "$stars" }
+            // AverageValue: { $avg: "$stars" }
+          }
+        }
+      ]
+    )
+    console.log('avg ', avg);
 
-    // let avg = Calificacion.aggregate(
-    //       [
-    //         {
-    //           $group:
-    //             {
-    //               _id: "$restaurant_id",
-    //               count: { $sum: 1 }
-    //               // AverageValue: { $avg: "$stars" }
-    //             }
-    //         }
-    //       ]
-    //     )
-    // console.log("avg ", avg.toString());
     // ####
 
     try {
@@ -104,20 +102,6 @@ const ObtenerPromedioPorRestaurant = async (req, res, next) => {
 
 const obtenerCalificacionesRestaurant = async (req, res, next) => {
   let listByRestaurant;
-
-  const avg = Calificacion.aggregate(
-        [
-          {
-            $group:
-              {
-                _id: "$restaurant_id",
-                total: { $sum: "$stars" }
-                // AverageValue: { $avg: "$stars" }
-              }
-          }
-        ]
-      )
-  console.log('avg ', avg);
 
   try {
     listByRestaurant = await Calificacion.find({ restaurant_id: req.params.rid } );
