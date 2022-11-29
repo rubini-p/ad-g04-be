@@ -118,7 +118,10 @@ const updateMenu = async (req, res, next) => {
     );
     return next(error);
   }
-  menu.category = category;
+  console.log('Category: ', category)
+  if (category) {
+    menu.category = category;
+  }
   try {
     await menu.save();
   } catch (err) {

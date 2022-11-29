@@ -6,7 +6,9 @@ const mongoose = require('mongoose');
 const Location = require('../utils/location');
 const HttpError = require('../models/http-error');
 const Restaurant = require('../models/restaurant');
+const Menu = require('../models/menu');
 const User = require('../models/user');
+const {create} = require("axios");
 
 const getRestaurants = async (req, res, next) => {
   let restaurants;
@@ -43,7 +45,8 @@ const getRestaurantsNearMe = async (req, res, next) => {
     } else {
       maxDistance = req.query.maxDistance
     }
-    console.log(maxDistance)
+    console.log('lag y long req: ' , req.query);
+    // console.log(maxDistance)
     restaurants = await Restaurant.find({
       location:
         { $near :
@@ -74,6 +77,7 @@ const getRestaurantsNearMe = async (req, res, next) => {
 };
 
 const createRestaurant = async (req, res, next) => {
+  console.log("creating restaurant")
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -85,13 +89,19 @@ const createRestaurant = async (req, res, next) => {
 
   let aux = address.number + ' ' + address.street  + ' ' + address.state ;
   let coords = await Location(aux);
-  console.log(aux, coords)
+  // console.log(aux, coords);
+
+  // for (const key in closeTime) {
+  //   console.log(`${key}: ${openTime[key]}`);
+  //   date = new Date(key);
+  //   openHour = date.getHours() + ':' + date.getMinutes()
+  //   openTime[key] = new Date(openHour);
+  // }
 
   const createdRestaurant = new Restaurant({
     name,
     address,
     // funcion que obtenga lat y lng desde la address
-
     location: { "type": "Point", "coordinates": [coords.lng, coords.lat] },
     openTime,
     closeTime,
@@ -104,6 +114,11 @@ const createRestaurant = async (req, res, next) => {
     owner: req.userData.userId
   });
 
+  const menu = new Menu({
+    restaurant: createdRestaurant._id
+  });
+  await menu.save();
+  createdRestaurant.menu = menu._id;
   let user;
   try {
     user = await User.findById(req.userData.userId);
@@ -165,9 +180,9 @@ const updateRestaurant = async (req, res, next) => {
   if (address) {
   restaurant.address = address;
   let aux = address.number + ' ' + address.street  + ' ' + address.state ;
-  console.log(aux);
+  // console.log(aux);
   let coords = await Location(aux);
-  console.log(coords);
+  // console.log(coords);
     // 2216 virrey del pino buenos aires");
   restaurant.location = { "type": "Point", "coordinates": [coords.lng, coords.lat]
   }
@@ -209,7 +224,7 @@ const updateRestaurant = async (req, res, next) => {
 };
 
 const getRestaurantById = async (req, res, next) => {
-
+  console.log('getRestaurantByID...');
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -250,7 +265,7 @@ const getRestaurantsByUser = async (req, res, next) => {
   }
 
   let restaurants;
-  console.log('params: ', req.params);
+  // console.log('params: ', req.params);
   try {
     // restaurant = await Restaurant.findById(restaurantId).populate('Menu');
 

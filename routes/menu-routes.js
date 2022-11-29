@@ -30,8 +30,7 @@ router.post(
     [
         check('category')
             .not()
-            .isEmpty(),
-        check('food'),
+            .isEmpty()
     ],
     menuController.updateMenu
 );
