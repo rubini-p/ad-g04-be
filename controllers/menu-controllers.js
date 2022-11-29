@@ -28,6 +28,32 @@ const getMenuById = async (req, res, next) => {
   res.json({ Menu: existingMenu.toObject({ getters: true }) });
 };
 
+const getMenuCategories = async (req, res, next) => {
+  const { restaurantId } = req.body;
+  console.log(restaurantId);
+  let existingMenu;
+  try {
+    existingMenu = await Menu.findOne({ restaurant: restaurantId })
+    console.log("no encontre nada", existingMenu)
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not find a Menu.",
+      500
+    );
+    return next(error);
+  }
+
+  if (!existingMenu) {
+    const error = new HttpError(
+      "Could not find Menu for the provided id.",
+      404
+    );
+    return next(error);
+  }
+
+  res.json({ Menu: existingMenu.toObject({ getters: true }) });
+};
+
 const createMenu = async function (req, res, next) {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -36,18 +62,7 @@ const createMenu = async function (req, res, next) {
     );
   }
   const { restaurant, category, menu } = req.body;
-  const categoryAccepted = [
-    "Promocion del Dia",
-    "Entradas",
-    "Minutas",
-    "Ensaladas",
-    "Cafeteria",
-    "Carnes",
-    "Pizzas",
-    "Pescado",
-    "Pastas",
-    "Postres",
-  ];
+  const categoryAccepted = [ 'Promoción', 'Entradas', 'Minutas', 'Ensalada', 'Cafetería' , 'Carnes', 'Pizzas', 'Pescados', 'Pastas', 'Postres'];
   if (categoryAccepted.includes(category)) {
     const createdMenu = new Menu({
       category,
@@ -145,3 +160,4 @@ exports.getMenuById = getMenuById;
 exports.createMenu = createMenu;
 exports.updateMenu = updateMenu;
 exports.deleteMenu = deleteMenu;
+exports.getMenuCategories = getMenuCategories;
