@@ -23,22 +23,22 @@ const RestaurantSchema = new Schema({
       required: false
     }},
   openTime: { type: {
-    monday: {type: Number},
-    tuesday:  {type: Number},
-    wednesday:  {type: Number},
-    thursday:  {type: Number},
-    friday:  {type: Number},
-    saturday:  {type: Number},
-    sunday:  {type: Number}
+    monday: {type: Date},
+    tuesday:  {type: Date},
+    wednesday:  {type: Date},
+    thursday:  {type: Date},
+    friday:  {type: Date},
+    saturday:  {type: Date},
+    sunday:  {type: Date}
   } },
   closeTime: { type: {
-    monday: {type: Number},
-    tuesday:  {type: Number},
-    wednesday:  {type: Number},
-    thursday:  {type: Number},
-    friday:  {type: Number},
-    saturday:  {type: Number},
-    sunday:  {type: Number}
+    monday: {type: Date},
+    tuesday:  {type: Date},
+    wednesday:  {type: Date},
+    thursday:  {type: Date},
+    friday:  {type: Date},
+    saturday:  {type: Date},
+    sunday:  {type: Date}
     } },
   temporarilyClosed: { type: Boolean , default: false}, // default value false
   coverImage: { type: String },
