@@ -29,12 +29,10 @@ const getMenuById = async (req, res, next) => {
 };
 
 const getMenuCategories = async (req, res, next) => {
-  const { restaurantId } = req.body;
-  console.log(restaurantId);
+  const { menuId } = req.body;
   let existingMenu;
   try {
-    existingMenu = await Menu.findOne({ restaurant: restaurantId })
-    console.log("no encontre nada", existingMenu)
+    existingMenu = await Menu.findOne({ _id: menuId })
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not find a Menu.",
