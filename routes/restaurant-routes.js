@@ -40,15 +40,7 @@ router.post(
     restaurantController.createRestaurant
 );
 //
-router.patch(
-    '/:pid',
-    [
-        check('name')
-            .not()
-            .isEmpty(),
-    ],
-    restaurantController.updateRestaurant
-);
+router.patch('/:rid', restaurantController.updateRestaurant);
 
 router.delete('/:pid', restaurantController.deleteRestaurant);
 

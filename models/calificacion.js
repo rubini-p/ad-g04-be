@@ -5,24 +5,24 @@ const Schema = mongoose.Schema;
 const calificacionSchema = new Schema(
   {
     restaurant_id: {
+      type:  mongoose.Types.ObjectId, required: true, ref: 'Restaurant',
+      required: true,
+    },
+    username: {
       type: String,
       required: true,
     },
-    usuario_id: {
-      type: String,
-      required: true,
-    },
-    puntuacion: {
+    stars: {
       type: Number,
       required: true,
     },
-    comentario: {
+    comment: {
       type: String,
       required: true,
       maxlength: 400,
     },
-    fecha: {
-      type: Date,
+    date: {
+      type: String,
       required: true,
     },
   },
