@@ -2,7 +2,7 @@ const HttpError = require("../models/http-error");
 const Calificacion = require("../models/calificacion");
 const User = require("../models/user");
 const Restaurant = require("../models/restaurant");
-const calificacion = require("../models/calificacion");
+// const calificacion = require("../models/calificacion");
 
 const altaCalificacion = async (req, res, next) => {
   console.log('creando calificacion...', req.body);
@@ -38,30 +38,34 @@ const altaCalificacion = async (req, res, next) => {
       comment,
       date
     });
-    console.log("esta es la calificacion creada: ", calificacion)
+    // console.log("esta es la calificacion creada: ", calificacion)
 
     // #### obtener promedio
 
     // avg = await Calificacion.find({restaurant_id: req.body.restaurant_id})
-    console.log('rid: ',req.body.restaurant_id )
+    // console.log('rid: ',req.body.restaurant_id )
+
+    let resto = await Restaurant.findById(req.body.restaurant_id);
     const avg = await Calificacion.aggregate(
       [
-        { $match : { restaurant_id: req.body.restaurant_id } },
+        { $match : { restaurant_id: resto._id } },
         {$group:{_id: "$restaurant_id",
             avg: { $avg: "$stars" }
-            // AverageValue: { $avg: "$stars" }
           }
         }
       ]
     )
-    console.log('avg ', avg);
+
+    resto.grade = Math.round(avg[0].avg * 10) / 10
+
+    // console.log('avg ', avg[0].avg);
 
     // ####
 
     try {
 
       await calificacion.save();
-
+      await resto.save()
     } catch (err) {
       const error = new HttpError(
         "No se pudo crear la calificación, por favor probar nuevamente.",

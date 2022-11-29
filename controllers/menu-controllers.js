@@ -29,10 +29,10 @@ const getMenuById = async (req, res, next) => {
 };
 
 const getMenuCategories = async (req, res, next) => {
-  const { menuId } = req.body;
+  console.log('getting menu categories');
   let existingMenu;
   try {
-    existingMenu = await Menu.findOne({ _id: menuId })
+    existingMenu = await Menu.findById(req.params.mid)
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not find a Menu.",
@@ -61,6 +61,7 @@ const createMenu = async function (req, res, next) {
   }
   const { restaurant, category, menu } = req.body;
   const categoryAccepted = [ 'Promoción', 'Entradas', 'Minutas', 'Ensalada', 'Cafetería' , 'Carnes', 'Pizzas', 'Pescados', 'Pastas', 'Postres'];
+
   if (categoryAccepted.includes(category)) {
     const createdMenu = new Menu({
       category,
@@ -95,6 +96,7 @@ const updateMenu = async (req, res, next) => {
   }
 
   const { menuId, category } = req.body;
+  // console.log('body: ', req.body);
   let menu;
   try {
     menu = await Menu.findById(menuId);
@@ -105,7 +107,8 @@ const updateMenu = async (req, res, next) => {
     );
     return next(error);
   }
-  console.log('Category: ', category)
+  // console.log('Category: ', category);
+  // console.log('CategoryMenu: ', menu.category);
 
   if (category) {
     menu.category = category;
