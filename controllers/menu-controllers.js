@@ -108,6 +108,7 @@ const updateMenu = async (req, res, next) => {
     return next(error);
   }
   console.log('Category: ', category)
+
   if (category) {
     menu.category = category;
   }

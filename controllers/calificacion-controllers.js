@@ -46,7 +46,7 @@ const altaCalificacion = async (req, res, next) => {
     console.log('rid: ',req.body.restaurant_id )
     const avg = await Calificacion.aggregate(
       [
-        { $match : { restaurant_id: "req.body.restaurant_id } },
+        { $match : { restaurant_id: req.body.restaurant_id } },
         {$group:{_id: "$restaurant_id",
             avg: { $avg: "$stars" }
             // AverageValue: { $avg: "$stars" }
