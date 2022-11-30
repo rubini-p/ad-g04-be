@@ -224,7 +224,9 @@ const updateRestaurant = async (req, res, next) => {
 };
 
 const getRestaurantById = async (req, res, next) => {
+
   console.log('getRestaurantByID...');
+  console.log('req: ', req.params);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -251,7 +253,7 @@ const getRestaurantById = async (req, res, next) => {
   //   return next(error);
   // }
 
-
+  console.log('encontre este resto: ', restaurant._id);
   res.status(200).json({ restaurant: restaurant.toObject({ getters: true }) });
 };
 
