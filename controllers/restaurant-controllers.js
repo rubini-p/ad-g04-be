@@ -12,7 +12,7 @@ const {create} = require("axios");
 const getRestaurants = async (req, res, next) => {
   let restaurants;
   try {
-    restaurants = await Restaurant.find();  
+    restaurants = await Restaurant.find(); 
   } catch (err) {
     const error = new HttpError(
         'Something went wrong, could not find a restaurant.',
@@ -51,7 +51,7 @@ const getRestaurantsNearMe = async (req, res, next) => {
             }
         }
     });
-    restaurants.filter(restaurants => restaurants.temporarilyClosed == false);
+    restaurants = restaurants.filter(restaurants => restaurants.temporarilyClosed == false);
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not find a reataurant.',
