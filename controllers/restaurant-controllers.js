@@ -86,7 +86,7 @@ const createRestaurant = async (req, res, next) => {
   let restaurant;
   try {
     restaurant = await Restaurant.find({ name: req.params.name});
-    if(!restaurant){
+    if(restaurant.length == 0){
       const createdRestaurant = new Restaurant({
         name,
         address,
