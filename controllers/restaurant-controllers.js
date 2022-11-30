@@ -227,7 +227,9 @@ const updateRestaurant = async (req, res, next) => {
 };
 
 const getRestaurantById = async (req, res, next) => {
+
   console.log('getRestaurantByID...');
+  console.log('req: ', req.params);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -254,7 +256,7 @@ const getRestaurantById = async (req, res, next) => {
   //   return next(error);
   // }
 
-
+  console.log('encontre este resto: ', restaurant._id);
   res.status(200).json({ restaurant: restaurant.toObject({ getters: true }) });
 };
 
@@ -289,6 +291,35 @@ const getRestaurantsByUser = async (req, res, next) => {
 
   res.status(200).json({ restaurants: restaurants.map(restaurant => restaurant.toObject({ getters: true })) });
 };
+
+const filterRestaurants = async (req, res, next) => {
+//  Filtros nearme stars pricerange categorias kindoffood
+  console.log('Filtering...')
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError('Invalid inputs passed, please check your data.', 422)
+    );
+  };
+
+  let result;
+  const { stars, kof } = req.query
+
+  let a_kof = kof.split(',')
+  console.log('kof: ', a_kof);
+  try {
+    // category es un string de categorias separado por comas
+    result = await Restaurant.find({grade: stars, kindOfFood: { $in:  a_kof }, temporarilyClosed: false})
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not get restaurant.',
+      510
+    );
+    return next(error);
+  };
+
+  res.status(200).json({ restaurants: result.map(restaurant => restaurant.toObject({ getters: true })) });
+}
 
 const deleteRestaurant = async (req, res, next) => {
   const restaurantId = req.params.pid;
@@ -348,3 +379,4 @@ exports.getRestaurantsNearMe = getRestaurantsNearMe;
 exports.createRestaurant = createRestaurant;
 exports.updateRestaurant = updateRestaurant;
 exports.deleteRestaurant = deleteRestaurant;
+exports.filterRestaurants = filterRestaurants;
