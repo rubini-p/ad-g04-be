@@ -78,20 +78,4 @@ mongoose
       console.log(err);
   });
 
-const keys = require('./configs/keys');
-const cookieSession = require('cookie-session');
-const passport = require('passport');
-require('./models/user');
-require('./service/passport');
-require('./routes/authRoutes')(app);
-mongoose.connect(keys.mongoURI);
-
-app.use(cookieSession({
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-        keys: [keys.cookieKey],
-    }));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
 
