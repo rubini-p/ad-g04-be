@@ -161,7 +161,7 @@ const updateRestaurant = async (req, res, next) => {
   }
 
   const { name, address, menu, openTime, closeTime, temporarilyClosed, grade, kindOfFood, priceRange  } = req.body;
-  const restaurantId = req.params.pid;
+  const restaurantId = req.params.rid;
   let restaurant;
   try {
     restaurant = await Restaurant.findById(restaurantId);
@@ -172,7 +172,6 @@ const updateRestaurant = async (req, res, next) => {
     );
     return next(error);
   }
-
   if (restaurant.owner.toString() !== req.userData.userId) {
     const error = new HttpError('You are not allowed to edit this retaurant.', 401);
     return next(error);
@@ -348,7 +347,7 @@ const filterRestaurants = async (req, res, next) => {
 }
 
 const deleteRestaurant = async (req, res, next) => {
-  const restaurantId = req.params.pid;
+  const restaurantId = req.params.rid;
 
   let restaurant;
   try {

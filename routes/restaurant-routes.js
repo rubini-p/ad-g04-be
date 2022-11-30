@@ -43,6 +43,6 @@ router.post(
 //
 router.patch('/:rid', restaurantController.updateRestaurant);
 
-router.delete('/:pid', restaurantController.deleteRestaurant);
+router.delete('/:rid', restaurantController.deleteRestaurant);
 
 module.exports = router;
