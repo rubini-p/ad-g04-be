@@ -72,6 +72,7 @@ const getRestaurantsNearMe = async (req, res, next) => {
 };
 
 const createRestaurant = async (req, res, next) => {
+  console.log('Creating restaurant...');
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -80,12 +81,11 @@ const createRestaurant = async (req, res, next) => {
   }
 
   const { name, address, openTime, closeTime, temporarilyClosed, grade, kindOfFood, priceRange } = req.body;
-
   let aux = address.number + ' ' + address.street  + ' ' + address.state ;
   let coords = await Location(aux);
   let restaurant;
   try {
-    restaurant = await Restaurant.find({ name: req.params.name});
+    restaurant = await Restaurant.findOne({ name: name });
     if(!restaurant){
       const createdRestaurant = new Restaurant({
         name,
@@ -105,6 +105,7 @@ const createRestaurant = async (req, res, next) => {
         restaurant: createdRestaurant._id
       });
       await menu.save();
+
       createdRestaurant.menu = menu._id;
       let user;
       try {
