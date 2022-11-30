@@ -303,16 +303,38 @@ const filterRestaurants = async (req, res, next) => {
   };
 
   let result;
-  // result = await getRestaurantsNearMe({"query": {"latitude": , "longitude": -34.5, "maxDistance": 1000}});
-
-  console.log("result ", result);
-  const { stars, kof, price } = req.query
-
-  let a_kof = kof.split(',')
-  console.log('kof: ', a_kof);
+  const { stars, kof, price, latitude, longitude, maxDistance } = req.query
+  let md
+  if (!maxDistance) {
+    md = 1000
+  } else {
+    md = maxDistance
+  }
+  let a_kof
+  a_kof = []
+  if (kof) {
+    a_kof = kof.split(',')
+    // console.log('kof: ', a_kof);
+  }
   try {
     // category es un string de categorias separado por comas
-    result = await Restaurant.find({grade: stars, kindOfFood: { $in:  a_kof }, temporarilyClosed: false, priceRange: price})
+    if (kof) {
+      result = await Restaurant.find({
+        grade: stars,
+        kindOfFood: {$in: a_kof},
+        temporarilyClosed: false,
+        priceRange: price,
+        location: {$near: {$geometry: {type: "Point", coordinates: [longitude, latitude]}, $maxDistance: md}}
+      })
+    } else {
+      result = await Restaurant.find({
+        grade: stars,
+        temporarilyClosed: false,
+        priceRange: price,
+        location: {$near: {$geometry: {type: "Point", coordinates: [longitude, latitude]}, $maxDistance: md}}
+      })
+    }
+      // console.log('Results: ', result)
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not get restaurant.',
