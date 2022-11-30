@@ -1,4 +1,3 @@
-// WIP Armar controller
 const fs = require('fs');
 
 const { validationResult } = require('express-validator');
@@ -13,12 +12,13 @@ const {create} = require("axios");
 const getRestaurants = async (req, res, next) => {
   let restaurants;
   try {
-    restaurants = await Restaurant.find();
+    restaurants = await Restaurant.find();  
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not find a receta.',
+        'Something went wrong, could not find a restaurant.',
         500
     );
+    console.log(error)
     return next(error);
   }
 
@@ -34,19 +34,14 @@ const getRestaurants = async (req, res, next) => {
 };
 
 const getRestaurantsNearMe = async (req, res, next) => {
-  console.log('nearme...');
   let restaurants;
   try {
-
     let maxDistance;
-
     if (!req.query.maxDistance) {
       maxDistance = 1000
     } else {
       maxDistance = req.query.maxDistance
     }
-    console.log('lag y long req: ' , req.query);
-    // console.log(maxDistance)
     restaurants = await Restaurant.find({
       location:
         { $near :
@@ -56,10 +51,10 @@ const getRestaurantsNearMe = async (req, res, next) => {
             }
         }
     });
-    // console.log(restaurants)
+    restaurants.filter(restaurants => restaurants.temporarilyClosed == false);
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not find a receta.',
+      'Something went wrong, could not find a reataurant.',
       500
     );
     return next(error);
@@ -77,7 +72,6 @@ const getRestaurantsNearMe = async (req, res, next) => {
 };
 
 const createRestaurant = async (req, res, next) => {
-  console.log("creating restaurant")
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -89,63 +83,72 @@ const createRestaurant = async (req, res, next) => {
 
   let aux = address.number + ' ' + address.street  + ' ' + address.state ;
   let coords = await Location(aux);
-  // console.log(aux, coords);
-
-  // for (const key in closeTime) {
-  //   console.log(`${key}: ${openTime[key]}`);
-  //   date = new Date(key);
-  //   openHour = date.getHours() + ':' + date.getMinutes()
-  //   openTime[key] = new Date(openHour);
-  // }
-
-  const createdRestaurant = new Restaurant({
-    name,
-    address,
-    // funcion que obtenga lat y lng desde la address
-    location: { "type": "Point", "coordinates": [coords.lng, coords.lat] },
-    openTime,
-    closeTime,
-    temporarilyClosed, // default value false
-    // coverImage: req.files['coverImage'][0].path,
-    // image: req.files['image'].map(file => file.path),
-    kindOfFood,
-    grade,
-    priceRange,
-    owner: req.userData.userId
-  });
-
-  const menu = new Menu({
-    restaurant: createdRestaurant._id
-  });
-  await menu.save();
-  createdRestaurant.menu = menu._id;
-  let user;
+  let restaurant;
   try {
-    user = await User.findById(req.userData.userId);
+    restaurant = await Restaurant.find({ name: req.params.name});
+    if(!restaurant){
+      const createdRestaurant = new Restaurant({
+        name,
+        address,
+        // funcion que obtenga lat y lng desde la address
+        location: { "type": "Point", "coordinates": [coords.lng, coords.lat] },
+        openTime,
+        closeTime,
+        temporarilyClosed, 
+        kindOfFood,
+        grade,
+        priceRange,
+        owner: req.userData.userId
+      });
+    
+      const menu = new Menu({
+        restaurant: createdRestaurant._id
+      });
+      await menu.save();
+      createdRestaurant.menu = menu._id;
+      let user;
+      try {
+        user = await User.findById(req.userData.userId);
+      } catch (err) {
+        const error = new HttpError(
+          'Creating restaurant failed, please try again user not found.',
+          500
+        );
+        return next(error);
+      }
+    
+      if (!user) {
+        const error = new HttpError('Could not find user for provided id.', 404);
+        return next(error);
+      }
+    
+      try {
+        await createdRestaurant.save();
+      } catch (err) {
+        const error = new HttpError(
+          'Creating restaurant failed, please try again.',
+          500
+        );
+        return next(error);
+      }
+      console.log('created restaurant: ', createdRestaurant.name)
+      res.status(201).json({ restaurant: createdRestaurant });
+    }else{
+      const errorER = new HttpError(
+        'Something went wrong, could not create restaurant.',
+        403
+      );
+      return next(errorER);
+    }
   } catch (err) {
     const error = new HttpError(
-      'Creating restaurant failed, please try again user not found.',
+      'Something went wrong, could not create restaurant.',
       500
     );
     return next(error);
   }
-
-  if (!user) {
-    const error = new HttpError('Could not find user for provided id.', 404);
-    return next(error);
-  }
-
-  try {
-    await createdRestaurant.save();
-  } catch (err) {
-    const error = new HttpError(
-      'Creating restaurant failed, please try again.',
-      500
-    );
-    return next(error);
-  }
-  console.log('created restaurant: ', createdRestaurant.name)
-  res.status(201).json({ restaurant: createdRestaurant });
+  //
+  
 };
 
 const updateRestaurant = async (req, res, next) => {
