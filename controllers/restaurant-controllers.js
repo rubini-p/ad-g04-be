@@ -303,13 +303,16 @@ const filterRestaurants = async (req, res, next) => {
   };
 
   let result;
-  const { stars, kof } = req.query
+  // result = await getRestaurantsNearMe({"query": {"latitude": , "longitude": -34.5, "maxDistance": 1000}});
+
+  console.log("result ", result);
+  const { stars, kof, price } = req.query
 
   let a_kof = kof.split(',')
   console.log('kof: ', a_kof);
   try {
     // category es un string de categorias separado por comas
-    result = await Restaurant.find({grade: stars, kindOfFood: { $in:  a_kof }, temporarilyClosed: false})
+    result = await Restaurant.find({grade: stars, kindOfFood: { $in:  a_kof }, temporarilyClosed: false, priceRange: price})
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not get restaurant.',
