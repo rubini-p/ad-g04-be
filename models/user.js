@@ -11,8 +11,7 @@ const userSchema = new Schema({
   favorite:{ type: [], required: false},
   isAdmin: { type: Boolean, required: true, default: true },
   photo: { type: Buffer, required: false },
-  defaultImage: { type: Boolean, required: false, default: true },
-  isGoogleAccount : {type: Boolean, default: false}
+  defaultImage: { type: Boolean, required: false, default: true }
 },
   {
     versionKey: false,
