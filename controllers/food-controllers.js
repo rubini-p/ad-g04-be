@@ -34,9 +34,9 @@ const createFood = async function (req, res, next) {
         new HttpError("Invalid inputs passed, please check your data.", 422)
       );
     }
-    const { category, foodname, description, price, photos, ingredients, isCeliac, isVegan, menuId } = req.body;
+    const { category, foodname, description, price, photos, isCeliac, isVegan, menuId } = req.body;
     const createdFood = new Food({
-        category, foodname, description, price, ingredients, isCeliac, isVegan, photos, menuId,
+        category, foodname, description, price, isCeliac, isVegan, photos, menuId,
       });
       try {
         await createdFood.save();
@@ -56,7 +56,6 @@ const createFood = async function (req, res, next) {
           description: createdFood.description,
           price: createdFood.price,
           photos: createdFood.photos,
-          ingredients: createdFood.ingredients,
           isCeliac: createdFood.isCeliac,
           isVegan: createdFood.isVegan,
           menuId: createdFood.menuId,
@@ -71,7 +70,7 @@ const updateFood = async (req, res, next) => {
         new HttpError('Invalid inputs passed, please check your data.', 422)
     );
   }
-  const { foodId, category, foodname, description, price, photos, ingredients, isCeliac, isVegan } = req.body;
+  const { foodId, category, foodname, description, price, photos, isCeliac, isVegan } = req.body;
   let food;
   try {
     food = await Food.findById(foodId);
@@ -87,7 +86,6 @@ const updateFood = async (req, res, next) => {
   food.description = description;
   food.price = price;
   food.photos = photos;
-  food.ingredients = ingredients;
   food.isCeliac = isCeliac;
   food.isVegan = isVegan;
 

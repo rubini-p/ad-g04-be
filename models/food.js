@@ -7,7 +7,6 @@ const FoodSchema = new Schema({
     description: { type: String, required: false }, 
     price: { type: Number, required: false },
     photos: { type: String, required: false },
-    ingredients: { type: Array, required: false },
     isCeliac: { type: Boolean, required: false },
     isVegan: { type: Boolean, required: false },
     menuId: { type: mongoose.Types.ObjectId, required: true, ref: 'Menu' }
