@@ -10,7 +10,7 @@ const userSchema = new Schema({
   password: { type: String, required: false, minlength: 6 },
   favorite:{ type: [], required: false},
   isAdmin: { type: Boolean, required: true, default: true },
-  photo: { type: Buffer, required: false },
+  photo: { type: String, required: false },
   defaultImage: { type: Boolean, required: false, default: true }
 },
   {
