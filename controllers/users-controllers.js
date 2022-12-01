@@ -542,7 +542,7 @@ const resetPassword = async (req, res) => {
 }
 
 const changePassword = async (req, res, next) => {
-
+  console.log('changing password...');
   const { currentPassword, newPassword } = req.body;
 
   let existingUser;
@@ -556,7 +556,7 @@ const changePassword = async (req, res, next) => {
     );
     return next(error);
   }
-
+  console.log('user to change password is: ', existingUser.email);
   if (!existingUser) {
     const error = new HttpError(
       'User does not exist',
@@ -575,7 +575,8 @@ const changePassword = async (req, res, next) => {
     );
     return next(error);
   }
-
+  console.log('isvalid: ', isValidPassword , existingUser.password)
+   console.log('body: ', req.body);
   if (!isValidPassword) {
     const error = new HttpError(
       'Actual password is wrong',
