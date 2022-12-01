@@ -10,10 +10,19 @@ const User = require('../models/user');
 const {create} = require("axios");
 
 const getRestaurantsFavorites = async (req, res, next) => {
+  console.log('getting restaurants favorites: ')
   let restaurants;
   let user;
   console.log('uid: ',  req.query.userId);
-  user = await User.findById(req.query.userId);
+  try {
+    user = await User.findById(req.query.userId);
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not find a restaurant.',
+      500
+    );
+    return next(error);
+  };
   console.log('user: ', user)
   try {
     restaurants = await Restaurant.find({name: {$in: user.favorite}});
@@ -326,7 +335,7 @@ const getRestaurantsByUser = async (req, res, next) => {
 
 const filterRestaurants = async (req, res, next) => {
 //  Filtros nearme stars pricerange categorias kindoffood
-  console.log('Filtering...')
+  console.log('Filtering ...')
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(

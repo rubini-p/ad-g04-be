@@ -31,7 +31,9 @@ const onlyFavs = async (req, res, next) => {
   console.log('query: ', req.query);
   console.log('params: ', req.params);
   try {
+
     user = await User.findById(userId, '-password');
+
   } catch (err) {
     const error = new HttpError(
       'Fetching users failed, please try again later.',
@@ -45,6 +47,7 @@ const onlyFavs = async (req, res, next) => {
 
 
 const signupDefault = async (req, res, next) => {
+  console.log('signin up admin...', req.body);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -56,7 +59,7 @@ const signupDefault = async (req, res, next) => {
 
   let existingUser;
   try {
-    existingUser = await User.findOne({ email: email });
+    existingUser = await User.findOne({ email: email, isAdmin: true });
   } catch (err) {
     const error = new HttpError(
       'Signing up failed, please try again later.',
@@ -76,6 +79,7 @@ const signupDefault = async (req, res, next) => {
   let hashedPassword;
   try {
     hashedPassword = await bcrypt.hash(password, 12);
+
   } catch (err) {
     const error = new HttpError(
       'Could not create user, please try again.',
@@ -89,11 +93,11 @@ const signupDefault = async (req, res, next) => {
     email,
     password: hashedPassword,
     favorite,
-    isAdmin: false,
+    isAdmin: true,
     photo,
     defaultImage
   });
-
+  console.log('createduser: ', createdUser);
   try {
     await createdUser.save();
   } catch (err) {
@@ -127,11 +131,10 @@ const signupDefault = async (req, res, next) => {
 const signup = async (req,res,next) => {
   const {isAdmin} = req.body;
   if (isAdmin)
-    signupGoogle(req,res,next);
-      
-  else
     signupDefault(req,res,next);
-  
+  else
+    signupGoogle(req,res,next);
+
 }
 
 const signupGoogle = async (req,res,next) => {
@@ -283,6 +286,7 @@ const editUser = async (req, res, next) => {
 };
 
 const loginDefault = async (req, res, next) => {
+  console.log('logging in admin..', req.body);
   const { email, password } = req.body;
 
   let existingUser;
@@ -356,14 +360,14 @@ const loginDefault = async (req, res, next) => {
 const login = async (req, res, next) => {
   const {isAdmin} = req.body;
   if (isAdmin)
-    loginGoogle(req,res,next);
-      
-  else
     loginDefault(req,res,next);
+  else
+    loginGoogle(req,res,next);
 }
 
 const loginGoogle = async (req, res, next) => {
-  const { email } = req.body;
+  console.log('logging in with google, ', req.body);
+  const { email, name, photo,  } = req.body;
 
   let existingUser;
 
@@ -380,7 +384,7 @@ const loginGoogle = async (req, res, next) => {
   let createdUser ;
   if (!existingUser) {
     try {
-      createdUser = new User({email, isAdmin: false});
+      createdUser = new User({email, isAdmin: false, defaultImage: true, photo, name });
       await createdUser.save();
       console.log('Guarde el usuario no admin');
     } catch (err) {
