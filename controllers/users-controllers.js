@@ -23,7 +23,7 @@ const getUsers = async (req, res, next) => {
   res.json({ users: users.map(user => user.toObject({ getters: true })) });
 };
 
-const signup = async (req, res, next) => {
+const signupDefault = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -70,7 +70,8 @@ const signup = async (req, res, next) => {
     favorite,
     isAdmin,
     photo,
-    defaultImage
+    defaultImage,
+    isGoogleAccount: false
   });
 
   try {
@@ -103,7 +104,83 @@ const signup = async (req, res, next) => {
     .json({ userId: createdUser.id, email: createdUser.email, token: token });
 };
 
+const signup = async (req,res,next) => {
+  const {isGoogleAccount} = req.body;
+  if (isGoogleAccount)
+    signupGoogle(req,res,next);
+      
+  else
+    signupDefault(req,res,next);
+  
+}
+const signupGoogle = async (req,res,next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError('Invalid inputs passed, please check your data.', 422)
+    );
+  }
 
+  const { email,  photo, isAdmin, defaultImage, favorite } = req.body;
+
+  let existingUser;
+  try {
+    existingUser = await User.findOne({ name: email, isGoogleAccount:true});
+  } catch (err) {
+    const error = new HttpError(
+      'Signing up failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  if (existingUser) {
+    const error = new HttpError(
+      'User exists already, please login instead.',
+      422
+    );
+    return next(error);
+  }
+
+    const createdUser = new User({
+    name:email,
+    email,
+    favorite,
+    isAdmin,
+    photo,
+    defaultImage,
+    isGoogleAccount: true
+  });
+
+  try {
+    await createdUser.save();
+  } catch (err) {
+    const error = new HttpError(
+      'Signing up failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: createdUser.id, email: createdUser.email },
+      'supersecret_dont_share',
+      // { expiresIn: '1h' }
+    );
+  } catch (err) {
+    const error = new HttpError(
+      'Signing up failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  res
+    .status(201)
+    .json({ userId: createdUser.id, email: createdUser.email, token: token });
+}
 
 const editUser = async (req, res, next) => {
   console.log('editing user.. ');
@@ -172,7 +249,7 @@ const editUser = async (req, res, next) => {
 
 
 
-const login = async (req, res, next) => {
+const loginDefault = async (req, res, next) => {
   const { email, password } = req.body;
 
   let existingUser;
@@ -213,6 +290,65 @@ const login = async (req, res, next) => {
     );
     return next(error);
   }
+
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: existingUser.id, email: existingUser.email },
+      'supersecret_dont_share'
+      // ,
+      // { expiresIn: '1h' }
+    );
+  } catch (err) {
+    const error = new HttpError(
+      'Logging in failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+  console.log('login successfull: ', existingUser.email)
+  res.json({
+    name: existingUser.name,
+    userId: existingUser.id,
+    email: existingUser.email,
+    token: token,
+    favorite: existingUser.favorite,
+    photo: existingUser.photo,
+    defaultImage: existingUser.defaultImage,
+    isAdmin: existingUser.isAdmin,
+  });
+};
+const login = async (req, res, next) => {
+  const {isGoogleAccount} = req.body;
+  if (isGoogleAccount)
+    loginGoogle(req,res,next);
+      
+  else
+    loginDefault(req,res,next);
+}
+const loginGoogle = async (req, res, next) => {
+  const { email } = req.body;
+
+  let existingUser;
+
+  try {
+    existingUser = await User.findOne({ name: email });
+  } catch (err) {
+    const error = new HttpError(
+      'Logging in failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!existingUser) {
+    const error = new HttpError(
+      'Invalid credentials, could not log you in.',
+      403
+    );
+    return next(error);
+  }
+
 
   let token;
   try {
