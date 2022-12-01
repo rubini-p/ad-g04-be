@@ -112,6 +112,7 @@ const signup = async (req,res,next) => {
     signupDefault(req,res,next);
   
 }
+
 const signupGoogle = async (req,res,next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -243,10 +244,6 @@ const editUser = async (req, res, next) => {
     .json({ message: 'user updated' });
 };
 
-
-
-
-
 const loginDefault = async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -316,6 +313,7 @@ const loginDefault = async (req, res, next) => {
     isAdmin: existingUser.isAdmin,
   });
 };
+
 const login = async (req, res, next) => {
   const {isAdmin} = req.body;
   if (isAdmin)
@@ -324,6 +322,7 @@ const login = async (req, res, next) => {
   else
     loginDefault(req,res,next);
 }
+
 const loginGoogle = async (req, res, next) => {
   const { email } = req.body;
 
@@ -589,12 +588,16 @@ const checkToken = async (req, res) => {
   }
 }
 
+exports.loginGoogle = loginGoogle
+exports.signupGoogle = signupGoogle
 exports.editUser = editUser;
 exports.getUsers = getUsers;
 exports.signup = signup;
 exports.checkToken = checkToken;
 exports.deleteAccount = deleteAccount;
 exports.login = login;
+exports.loginDefault = loginDefault;
+exports.signupDefault = signupDefault;
 exports.reset = reset;
 exports.changePassword = changePassword;
 exports.resetPassword = resetPassword;
