@@ -4,11 +4,11 @@ const mongoose = require("mongoose");
 const HttpError = require("../models/http-error");
 const Food = require("../models/food");
 
-const getFoodByMenu = async (req, res, next) => {
-  const { menuId } = req.body;
+const getFoodByMenuByCategory = async (req, res, next) => {
+  const { menuId, category } = req.body;
   let existingFood;
   try {
-    existingFood = await Food.find({menuId: menuId});
+    existingFood = await Food.find({menuId: menuId, category: category});
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not find a food.",
@@ -135,6 +135,6 @@ const deleteFood = async (req, res, next) => {
 };
 
 exports.createFood = createFood;
-exports.getFoodByMenu = getFoodByMenu; 
+exports.getFoodByMenuByCategory = getFoodByMenuByCategory; 
 exports.updateFood = updateFood;
 exports.deleteFood = deleteFood;

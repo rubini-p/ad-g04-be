@@ -4,7 +4,7 @@ const { check } = require("express-validator");
 const foodController = require("../controllers/food-controllers");
 const router = express.Router();
 
-router.get('/getFoodByMenu', foodController.getFoodByMenu);
+router.get('/getFoodByMenuByCategory', foodController.getFoodByMenuByCategory);
 
 router.post(
   "/createFood",
