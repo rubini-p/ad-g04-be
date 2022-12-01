@@ -9,10 +9,14 @@ const Menu = require('../models/menu');
 const User = require('../models/user');
 const {create} = require("axios");
 
-const getRestaurants = async (req, res, next) => {
+const getRestaurantsFavorites = async (req, res, next) => {
   let restaurants;
+  let user;
+  console.log('uid: ',  req.query.userId);
+  user = await User.findById(req.query.userId);
+  console.log('user: ', user)
   try {
-    restaurants = await Restaurant.find(); 
+    restaurants = await Restaurant.find({name: {$in: user.favorite}});
   } catch (err) {
     const error = new HttpError(
         'Something went wrong, could not find a restaurant.',
@@ -26,6 +30,30 @@ const getRestaurants = async (req, res, next) => {
     const error = new HttpError(
         'Could not find restaurants for the provided id.',
         404
+    );
+    return next(error);
+  }
+
+  res.json({restaurants});
+};
+
+const getRestaurants = async (req, res, next) => {
+  let restaurants;
+  try {
+    restaurants = await Restaurant.find();
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not find a restaurant.',
+      500
+    );
+    console.log(error)
+    return next(error);
+  }
+
+  if (!restaurants) {
+    const error = new HttpError(
+      'Could not find restaurants for the provided id.',
+      404
     );
     return next(error);
   }
@@ -373,7 +401,7 @@ const filterRestaurants = async (req, res, next) => {
 
 const filterFavoritesRestaurants = async (req, res, next) => {
 //  Filtros nearme stars pricerange categorias kindoffood
-  console.log('Filtering...')
+  console.log('Filtering favs...')
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -381,40 +409,18 @@ const filterFavoritesRestaurants = async (req, res, next) => {
     );
   };
 
-  let result;
-  let { stars, kof, price, latitude, longitude, maxDistance, userId } = req.query
-  let md;
+  let { kof, userId } = req.query
 
-  if (!stars) {
-    stars = 0;
-  }
-
+  let a_kof = [];
   if (kof === 'TODO' || kof === '') {
-    kof = ["TODO!", 'Pizza', 'Asiatica', 'Burgers', 'Ensalada', 'Helado', 'Brunch', 'Cafe', 'Milanesas', 'Italiana', 'Pescados', 'Carnes', 'Desayunos', 'Postres', 'Vegetariana'];
-  }
-  if (maxDistance === '') {
-    md = 1000;
+    a_kof = ["TODO!", 'Pizza', 'Asiatica', 'Burgers', 'Ensalada', 'Helado', 'Brunch', 'Cafe', 'Milanesas', 'Italiana', 'Pescados', 'Carnes', 'Desayunos', 'Postres', 'Vegetariana'];
   } else {
-    md = maxDistance
+    a_kof.push(kof);
   }
-  console.log(md);
-  // if (!maxDistance) {
-  //   md = 0
-  // } else {
-  //   md = maxDistance
-  // }
 
-  // a_price = []
-  // if (price) {
-  //   price = kof.replace('"','').split(',')
-  //   // console.log('kof: ', a_kof);
-  // }
+  let result;
+
   console.log(req.query);
-  if (!price) {
-    price = [1,2,3,4];
-  };
-
-  console.log(price,stars,md,latitude,longitude,kof);
 
   let user = User.findById(userId);
 
@@ -422,13 +428,10 @@ const filterFavoritesRestaurants = async (req, res, next) => {
     // category es un string de categorias separado por comas
     // if (price) {
     result = await Restaurant.find({
-      _id: { $in: user.favorite},
-      grade: {$gte: stars},
-      kindOfFood: {$in: kof },
-      temporarilyClosed: false,
-      priceRange: {$in: price},
-      location: {$near: {$geometry: {type: "Point", coordinates: [longitude, latitude]}, $maxDistance: md}}
-    });
+      name: {$in: ['Baltha01', 'Baltha03']},
+      // grade: {$gte: stars},
+      kindOfFood:  {$in: a_kof}
+      });
     // } else {
     //   result = await Restaurant.find({
     //     grade: {$gte: stars},
@@ -438,6 +441,7 @@ const filterFavoritesRestaurants = async (req, res, next) => {
     //   })
     // }
     // console.log('Results: ', result)
+    console.log('result: ', result);
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not get restaurant.',
@@ -501,6 +505,8 @@ const deleteRestaurant = async (req, res, next) => {
   res.status(200).json({ message: 'Deleted restaurant.' });
 };
 
+
+exports.getRestaurantsFavorites = getRestaurantsFavorites;
 exports.getRestaurants = getRestaurants;
 exports.getRestaurantById = getRestaurantById;
 exports.getRestaurantsByUser = getRestaurantsByUser;

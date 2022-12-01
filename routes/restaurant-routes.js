@@ -10,11 +10,12 @@ const checkAuth = require('../middleware/check-auth');
 const router = express.Router();
 
 router.get('/all', restaurantController.getRestaurants);
+router.get('/favorites', restaurantController.getRestaurantsFavorites);
 router.get('/id/:rid', restaurantController.getRestaurantById);
 router.get('/user/:uid', restaurantController.getRestaurantsByUser);
 router.get('/nearme', restaurantController.getRestaurantsNearMe);
 router.get('/filter', restaurantController.filterRestaurants);
-router.get('/filterfavorites', restaurantController.filterRestaurants);
+router.get('/filterfavorites', restaurantController.filterFavoritesRestaurants);
 
 // router.get('/:pid', restaurantController.getRestaurantById);
 

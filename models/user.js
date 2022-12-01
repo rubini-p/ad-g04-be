@@ -5,10 +5,10 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
   name: { type: String, required: false , default: 'User' },
-  email: { type: String, required: true, unique: true },
+  email: { type: String, required: true },
   //usar como name el email en el googlesignup
   password: { type: String, required: false, minlength: 6 },
-  favorite:{ type: [], required: false},
+  favorite:{ type: [ String ], required: false},
   isAdmin: { type: Boolean, required: true, default: true },
   photo: { type: String, required: false },
   defaultImage: { type: Boolean, required: false, default: true }

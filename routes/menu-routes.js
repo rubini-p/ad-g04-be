@@ -26,7 +26,7 @@ router.post(
 );
 
 router.post(
-    '/updateMenu',
+    '/updatemenu',
     [
         check('category')
             .not()

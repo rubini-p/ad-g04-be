@@ -37,6 +37,7 @@ const createFood = async function (req, res, next) {
       );
     }
     const { category, foodname, description, price, photos, isCeliac, isVegan, menuId } = req.body;
+    console.log('foto: ', photos);
     const createdFood = new Food({
         category, foodname, description, price, isCeliac, isVegan, photos, menuId,
       });

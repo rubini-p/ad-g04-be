@@ -8,6 +8,7 @@ const User = require('../models/user');
 const sendEmail = require("../utils/sendEmail");
 const Token = require("../models/token");
 const Restaurant = require("../models/restaurant");
+const {exist} = require("joi");
 
 const getUsers = async (req, res, next) => {
   let users;
@@ -190,11 +191,21 @@ const editUser = async (req, res, next) => {
     );
   }
 
-  const { name, email, photo, defaultImage, favorite } = req.body;
+  const { name, email, photo, defaultImage, favorite, userId } = req.body;
 
   let existingUser;
+
+  let uid;
+
+  if (!req.userData) {
+    uid= userId
+  } else {
+    uid = req.userData.userId;
+  }
+
   try {
-    existingUser = await User.findById(req.userData.userId);
+    console.log('uid: ', uid);
+    existingUser = await User.findById(uid);
   } catch (err) {
     console.log('token');
     const error = new HttpError(
@@ -203,7 +214,7 @@ const editUser = async (req, res, next) => {
     );
     return next(error);
   }
-
+  console.log('favorite: ', favorite);
   if (!existingUser) {
     const error = new HttpError(
       'User does not exist, please signup instead.',
@@ -250,7 +261,7 @@ const loginDefault = async (req, res, next) => {
   let existingUser;
 
   try {
-    existingUser = await User.findOne({ email: email });
+    existingUser = await User.findOne({ email, isAdmin: true });
   } catch (err) {
     const error = new HttpError(
       'Logging in failed, please try again later.',
@@ -289,7 +300,7 @@ const loginDefault = async (req, res, next) => {
   let token;
   try {
     token = jwt.sign(
-      { userId: existingUser.id, email: existingUser.email },
+      { userId: existingUser._id, email: existingUser.email },
       'supersecret_dont_share'
       // ,
       // { expiresIn: '1h' }
@@ -301,10 +312,11 @@ const loginDefault = async (req, res, next) => {
     );
     return next(error);
   }
-  console.log('login successfull: ', existingUser.email)
+  console.log('login successfull: ', existingUser.email);
+  console.log('existinguser: ', existingUser)
   res.json({
     name: existingUser.name,
-    userId: existingUser.id,
+    userId: existingUser._id,
     email: existingUser.email,
     token: token,
     favorite: existingUser.favorite,
@@ -329,7 +341,31 @@ const loginGoogle = async (req, res, next) => {
   let existingUser;
 
   try {
-    existingUser = await User.findOne({ name: email });
+    existingUser = await User.findOne({ email, isAdmin: false });
+    console.log('existingUser: ', existingUser);
+  } catch (err) {
+    const error = new HttpError(
+      'Logging in failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+  let createdUser ;
+  if (!existingUser) {
+    try {
+      createdUser = new User({email, isAdmin: false});
+      await createdUser.save();
+      console.log('Guarde el usuario no admin');
+    } catch (err) {
+        const error = new HttpError(
+          'Invalid credentials, could not log you in.',
+          403
+        );
+        return next(error);
+      }};
+
+  try {
+    existingUser = await User.findOne({ email, isAdmin: false });
   } catch (err) {
     const error = new HttpError(
       'Logging in failed, please try again later.',
@@ -338,19 +374,10 @@ const loginGoogle = async (req, res, next) => {
     return next(error);
   }
 
-  if (!existingUser) {
-    const error = new HttpError(
-      'Invalid credentials, could not log you in.',
-      403
-    );
-    return next(error);
-  }
-
-
   let token;
   try {
     token = jwt.sign(
-      { userId: existingUser.id, email: existingUser.email },
+      { userId: existingUser._id, email: existingUser.email },
       'supersecret_dont_share'
       // ,
       // { expiresIn: '1h' }
@@ -363,9 +390,10 @@ const loginGoogle = async (req, res, next) => {
     return next(error);
   }
   console.log('login successfull: ', existingUser.email)
+  console.log(existingUser);
   res.json({
     name: existingUser.name,
-    userId: existingUser.id,
+    userId: existingUser._id,
     email: existingUser.email,
     token: token,
     favorite: existingUser.favorite,

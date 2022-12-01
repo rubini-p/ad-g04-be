@@ -30,7 +30,7 @@ const altaCalificacion = async (req, res, next) => {
       );
       return next(error);
     }
-    if (stars = 0) {
+    if (stars === 0) {
       stars = 0.1
     }
     let calificacion = new Calificacion({
@@ -47,6 +47,16 @@ const altaCalificacion = async (req, res, next) => {
     // avg = await Calificacion.find({restaurant_id: req.body.restaurant_id})
     // console.log('rid: ',req.body.restaurant_id )
 
+    try {
+      await calificacion.save();
+    } catch (err) {
+      const error = new HttpError(
+        "No se pudo crear la calificación, por favor probar nuevamente.",
+        500
+      );
+      return next(error);
+    }
+
     let resto = await Restaurant.findById(req.body.restaurant_id);
     const avg = await Calificacion.aggregate(
       [
@@ -62,14 +72,8 @@ const altaCalificacion = async (req, res, next) => {
       resto.grade = Math.round(avg[0].avg * 10) / 10
     }
     // console.log('avg ', avg[0].avg);
-
-    // ####
-
     try {
-      console.log('empece a guardar');
-      await calificacion.save();
       await resto.save()
-      console.log('guarde todo');
     } catch (err) {
       const error = new HttpError(
         "No se pudo crear la calificación, por favor probar nuevamente.",
@@ -77,6 +81,7 @@ const altaCalificacion = async (req, res, next) => {
       );
       return next(error);
     }
+    // ####
     res.status(201).json(calificacion);
   } else {
   }

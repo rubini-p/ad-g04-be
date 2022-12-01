@@ -42,17 +42,8 @@ const RestaurantSchema = new Schema({
     } },
   temporarilyClosed: { type: Boolean , default: false}, // default value false
   coverImage: { type: String },
-  image: {type: [ String ]},
-
   photos: { type: [{ picture: {type: String} ,portrait: {type: Boolean}}],
-
-    default: [
-
-      {picture: 'https://media-cdn.tripadvisor.com/media/photo-s/16/7c/25/ed/vista-interior.jpg', portrait: true},
-
-      {picture: 'https://i0.wp.com/www.diegocoquillat.com/wp-content/uploads/2021/11/Promocionar-un-restaurante-segun-Google.jpg?fit=700%2C336&ssl=1', portrait: false}
-
-    ]},
+  },
   kindOfFood: { type:  String  },
   priceRange: { type: Number },
   grade: { type: Number },

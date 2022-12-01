@@ -88,6 +88,7 @@ const createMenu = async function (req, res, next) {
 
 
 const updateMenu = async (req, res, next) => {
+  console.log('updating menu...');
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -96,7 +97,7 @@ const updateMenu = async (req, res, next) => {
   }
 
   const { menuId, category } = req.body;
-  // console.log('body: ', req.body);
+  console.log('body: ', req.body);
   let menu;
   try {
     menu = await Menu.findById(menuId);
@@ -109,7 +110,7 @@ const updateMenu = async (req, res, next) => {
   }
   // console.log('Category: ', category);
   // console.log('CategoryMenu: ', menu.category);
-
+  console.log('menu: ', menu);
   if (category) {
     menu.category = category;
   }
