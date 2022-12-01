@@ -23,7 +23,7 @@ const getUsers = async (req, res, next) => {
   res.json({ users: users.map(user => user.toObject({ getters: true })) });
 };
 
-const signup = async (req, res, next) => {
+const signupDefault = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -35,7 +35,7 @@ const signup = async (req, res, next) => {
 
   let existingUser;
   try {
-    existingUser = await User.findOne({ email: email, isAdmin: true });
+    existingUser = await User.findOne({ email: email });
   } catch (err) {
     const error = new HttpError(
       'Signing up failed, please try again later.',
@@ -68,7 +68,7 @@ const signup = async (req, res, next) => {
     email,
     password: hashedPassword,
     favorite,
-    isAdmin,
+    isAdmin: false,
     photo,
     defaultImage
   });
@@ -103,6 +103,83 @@ const signup = async (req, res, next) => {
     .json({ userId: createdUser.id, email: createdUser.email, token: token });
 };
 
+const signup = async (req,res,next) => {
+  const {isAdmin} = req.body;
+  if (isAdmin)
+    signupGoogle(req,res,next);
+      
+  else
+    signupDefault(req,res,next);
+  
+}
+const signupGoogle = async (req,res,next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError('Invalid inputs passed, please check your data.', 422)
+    );
+  }
+
+  const { email,  photo, isAdmin, defaultImage, favorite } = req.body;
+
+  let existingUser;
+  try {
+    existingUser = await User.findOne({ name: email, isAdmin:true});
+  } catch (err) {
+    const error = new HttpError(
+      'Signing up failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  if (existingUser) {
+    const error = new HttpError(
+      'User exists already, please login instead.',
+      422
+    );
+    return next(error);
+  }
+
+    const createdUser = new User({
+    name:email,
+    email,
+    favorite,
+    isAdmin:true,
+    photo,
+    defaultImage,
+  });
+
+  try {
+    await createdUser.save();
+  } catch (err) {
+    const error = new HttpError(
+      'Signing up failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: createdUser.id, email: createdUser.email },
+      'supersecret_dont_share',
+      // { expiresIn: '1h' }
+    );
+  } catch (err) {
+    const error = new HttpError(
+      'Signing up failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  res
+    .status(201)
+    .json({ userId: createdUser.id, email: createdUser.email, token: token });
+}
+
 const editUser = async (req, res, next) => {
   console.log('editing user.. ');
   const errors = validationResult(req);
@@ -112,18 +189,11 @@ const editUser = async (req, res, next) => {
     );
   }
 
-  const { name, email, photo, defaultImage, favorite, userId} = req.body;
-  console.log('la foto es:', photo);
-  let existingUser;
-  let uid;
-  if (!req.userData) {
-    uid = userId;
-  } else {
-    uid = req.userData.userId ;
-  }
+  const { name, email, photo, defaultImage, favorite } = req.body;
 
+  let existingUser;
   try {
-    existingUser = await User.findById(uid);
+    existingUser = await User.findById(req.userData.userId);
   } catch (err) {
     console.log('token');
     const error = new HttpError(
@@ -132,6 +202,7 @@ const editUser = async (req, res, next) => {
     );
     return next(error);
   }
+
   if (!existingUser) {
     const error = new HttpError(
       'User does not exist, please signup instead.',
@@ -147,7 +218,7 @@ const editUser = async (req, res, next) => {
     existingUser.email = email;
   };
   if (photo) {
-    existingUser.photo = photo;
+    existingUser.photo = new Buffer(photo,"base64");
   };
   if (defaultImage) {
     existingUser.defaultImage = defaultImage;
@@ -172,7 +243,11 @@ const editUser = async (req, res, next) => {
     .json({ message: 'user updated' });
 };
 
-const login = async (req, res, next) => {
+
+
+
+
+const loginDefault = async (req, res, next) => {
   const { email, password } = req.body;
 
   let existingUser;
@@ -241,15 +316,21 @@ const login = async (req, res, next) => {
     isAdmin: existingUser.isAdmin,
   });
 };
-
+const login = async (req, res, next) => {
+  const {isAdmin} = req.body;
+  if (isAdmin)
+    loginGoogle(req,res,next);
+      
+  else
+    loginDefault(req,res,next);
+}
 const loginGoogle = async (req, res, next) => {
-  console.log('login in google...')
   const { email } = req.body;
 
   let existingUser;
 
   try {
-    existingUser = await User.findOne({ email: email, isAdmin: false });
+    existingUser = await User.findOne({ name: email });
   } catch (err) {
     const error = new HttpError(
       'Logging in failed, please try again later.',
@@ -258,20 +339,14 @@ const loginGoogle = async (req, res, next) => {
     return next(error);
   }
 
-  let user ;
   if (!existingUser) {
-    try {
-      console.log('creating user...');
-      user = new User({ email, isAdmin: false });
-      await user.save()
-      console.log('guarde el user...');
-    } catch (err) {
     const error = new HttpError(
       'Invalid credentials, could not log you in.',
       403
     );
     return next(error);
-  }};
+  }
+
 
   let token;
   try {
@@ -514,14 +589,12 @@ const checkToken = async (req, res) => {
   }
 }
 
-
 exports.editUser = editUser;
 exports.getUsers = getUsers;
 exports.signup = signup;
 exports.checkToken = checkToken;
 exports.deleteAccount = deleteAccount;
 exports.login = login;
-exports.loginGoogle = loginGoogle;
 exports.reset = reset;
 exports.changePassword = changePassword;
 exports.resetPassword = resetPassword;
