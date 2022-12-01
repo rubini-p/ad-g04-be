@@ -24,9 +24,6 @@ router.post(
 
 router.post('/login', usersController.login);
 
-router.post('/logingoogle', usersController.loginGoogle);
-
-
 router.post('/reset', usersController.reset);
 router.post('/resetpassword', usersController.resetPassword);
 
