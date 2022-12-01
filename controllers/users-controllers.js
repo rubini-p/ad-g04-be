@@ -71,7 +71,7 @@ const signupDefault = async (req, res, next) => {
     isAdmin,
     photo,
     defaultImage,
-    isGoogleAccount: false
+    isAdmin: false
   });
 
   try {
@@ -105,8 +105,8 @@ const signupDefault = async (req, res, next) => {
 };
 
 const signup = async (req,res,next) => {
-  const {isGoogleAccount} = req.body;
-  if (isGoogleAccount)
+  const {isAdmin} = req.body;
+  if (isadmin)
     signupGoogle(req,res,next);
       
   else
@@ -125,7 +125,7 @@ const signupGoogle = async (req,res,next) => {
 
   let existingUser;
   try {
-    existingUser = await User.findOne({ name: email, isGoogleAccount:true});
+    existingUser = await User.findOne({ name: email, isAdmin:true});
   } catch (err) {
     const error = new HttpError(
       'Signing up failed, please try again later.',
@@ -149,7 +149,7 @@ const signupGoogle = async (req,res,next) => {
     isAdmin,
     photo,
     defaultImage,
-    isGoogleAccount: true
+    isAdmin: true
   });
 
   try {
@@ -319,8 +319,8 @@ const loginDefault = async (req, res, next) => {
   });
 };
 const login = async (req, res, next) => {
-  const {isGoogleAccount} = req.body;
-  if (isGoogleAccount)
+  const {isAdmin} = req.body;
+  if (isAdmin)
     loginGoogle(req,res,next);
       
   else

@@ -12,7 +12,7 @@ const userSchema = new Schema({
   isAdmin: { type: Boolean, required: true, default: true },
   photo: { type: Buffer, required: false },
   defaultImage: { type: Boolean, required: false, default: true },
-  isGoogleAccount : {type: Boolean, default: false}
+  isAdmin : {type: Boolean, default: false}
 },
   {
     versionKey: false,
