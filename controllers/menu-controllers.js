@@ -61,7 +61,6 @@ const createMenu = async function (req, res, next) {
   }
   const { restaurant, category, menu } = req.body;
   const categoryAccepted = [ 'Promoción', 'Entradas', 'Minutas', 'Ensalada', 'Cafetería' , 'Carnes', 'Pizzas', 'Pescados', 'Pastas', 'Postres'];
-
   if (categoryAccepted.includes(category)) {
     const createdMenu = new Menu({
       category,

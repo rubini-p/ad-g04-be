@@ -105,7 +105,8 @@ const getRestaurantsNearMe = async (req, res, next) => {
     );
     return next(error);
   }
-
+  let logging = [];
+  restaurants.map(restaurant => {logging.push(restaurant.name)});
   res.json({restaurants});
 };
 
@@ -117,25 +118,27 @@ const createRestaurant = async (req, res, next) => {
       new HttpError('Invalid inputs passed, please check your data.', 422)
     );
   }
-
-  const { name, address, openTime, closeTime, temporarilyClosed, grade, kindOfFood, priceRange } = req.body;
+  console.log('req.body: ', req.body);
+  const { name, address, openTime, closeTime, temporarilyClosed, kindOfFood } = req.body;
   let aux = address.number + ' ' + address.street  + ' ' + address.state ;
   let coords = await Location(aux);
   let restaurant;
+
+  console.log('kindoffood: ', kindOfFood);
+
   try {
     restaurant = await Restaurant.findOne({ name: name });
     if(!restaurant){
       const createdRestaurant = new Restaurant({
         name,
         address,
-        // funcion que obtenga lat y lng desde la address
         location: { "type": "Point", "coordinates": [coords.lng, coords.lat] },
         openTime,
         closeTime,
         temporarilyClosed, 
         kindOfFood,
-        grade,
-        priceRange,
+        grade: 1,
+        priceRange: 0,
         owner: req.userData.userId
       });
     
@@ -237,7 +240,7 @@ const updateRestaurant = async (req, res, next) => {
   }
 
   console.log('isclosed:', temporarilyClosed);
-  if (temporarilyClosed !== null) {
+  if (typeof temporarilyClosed !== undefined) {
     restaurant.temporarilyClosed = temporarilyClosed; // default value false
   }
     // restaurant.photos = photos;
@@ -352,7 +355,7 @@ const filterRestaurants = async (req, res, next) => {
   }
 
   if (kof === 'TODO' || kof === '') {
-    kof = ["TODO!", 'Pizza', 'Asiatica', 'Burgers', 'Ensalada', 'Helado', 'Brunch', 'Cafe', 'Milanesas', 'Italiana', 'Pescados', 'Carnes', 'Desayunos', 'Postres', 'Vegetariana'];
+    kof = ["TODO", 'Pizza', 'Asiatica', 'Burgers', 'Ensalada', 'Helado', 'Brunch', 'Cafe', 'Milanesas', 'Italiana', 'Pescados', 'Carnes', 'Desayunos', 'Postres', 'Vegetariana'];
   }
   if (maxDistance === '') {
     md = 1000;
@@ -404,7 +407,11 @@ const filterRestaurants = async (req, res, next) => {
     );
     return next(error);
   };
-  console.log(result);
+
+  let logging = [];
+  result.map(restaurant => {logging.push(restaurant.name)});
+
+  console.log(logging);
   res.status(200).json({ restaurants: result.map(restaurant => restaurant.toObject({ getters: true })) });
 }
 
