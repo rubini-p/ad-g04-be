@@ -15,14 +15,35 @@ router.post(
   [
     check('email')
       .normalizeEmail()
-      .isEmail(),
-    check('password').isLength({ min: 6 })
+      .isEmail()
   ],
   usersController.signup
 );
 
+router.post(
+  '/signupgoogle',
+  [
+    check('email')
+      .normalizeEmail()
+      .isEmail()
+  ],
+  usersController.signupGoogle
+);
+
+router.post(
+  '/signupDefault',
+  [
+    check('email')
+      .normalizeEmail()
+      .isEmail()
+  ],
+  usersController.signupDefault
+);
+
 
 router.post('/login', usersController.login);
+router.post('/logingoogle', usersController.loginGoogle);
+router.post('/loginDefault', usersController.loginDefault);
 
 router.post('/reset', usersController.reset);
 router.post('/resetpassword', usersController.resetPassword);
