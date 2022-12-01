@@ -24,6 +24,26 @@ const getUsers = async (req, res, next) => {
   res.json({ users: users.map(user => user.toObject({ getters: true })) });
 };
 
+const onlyFavs = async (req, res, next) => {
+  console.log('getting favs list..');
+  let user;
+  const userId = req.query.userId;
+  console.log('query: ', req.query);
+  console.log('params: ', req.params);
+  try {
+    user = await User.findById(userId, '-password');
+  } catch (err) {
+    const error = new HttpError(
+      'Fetching users failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+  console.log('los favoritos: ', user.favorite);
+  res.json({ favorites: user.favorite } );
+};
+
+
 const signupDefault = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -197,12 +217,15 @@ const editUser = async (req, res, next) => {
 
   let uid;
 
+  console.log(req.userData);
+
   if (!req.userData) {
-    uid= userId
+    uid = userId;
   } else {
     uid = req.userData.userId;
   }
 
+  console.log('req.body: ', req.body);
   try {
     console.log('uid: ', uid);
     existingUser = await User.findById(uid);
@@ -230,11 +253,15 @@ const editUser = async (req, res, next) => {
     existingUser.email = email;
   };
   if (photo) {
-    existingUser.photo = new Buffer(photo,"base64");
+    existingUser.photo = photo;
   };
-  if (defaultImage) {
+
+  if (defaultImage === true) {
     existingUser.defaultImage = defaultImage;
-  };
+  } else if (defaultImage === false) {
+    existingUser.defaultImage = defaultImage;
+  }
+  ;
   if (favorite) {
     existingUser.favorite = favorite;
   };
@@ -616,8 +643,9 @@ const checkToken = async (req, res) => {
   }
 }
 
-exports.loginGoogle = loginGoogle
-exports.signupGoogle = signupGoogle
+exports.onlyFavs = onlyFavs;
+exports.loginGoogle = loginGoogle;
+exports.signupGoogle = signupGoogle;
 exports.editUser = editUser;
 exports.getUsers = getUsers;
 exports.signup = signup;

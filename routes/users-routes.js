@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.get('/', usersController.getUsers);
 router.get('/:tkn', usersController.checkToken);
-
+router.get('/onlyfavs/favs', usersController.onlyFavs)
 router.post(
   '/signup',
   [
@@ -48,8 +48,8 @@ router.post('/loginDefault', usersController.loginDefault);
 router.post('/reset', usersController.reset);
 router.post('/resetpassword', usersController.resetPassword);
 
-router.patch('/edit', usersController.editUser);
 router.use(checkAuth);
+router.patch('/edit', usersController.editUser);
 router.delete('/', usersController.deleteAccount);
 router.post('/changepassword', usersController.changePassword);
 

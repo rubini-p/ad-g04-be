@@ -413,7 +413,7 @@ const filterFavoritesRestaurants = async (req, res, next) => {
 
   let a_kof = [];
   if (kof === 'TODO' || kof === '') {
-    a_kof = ["TODO!", 'Pizza', 'Asiatica', 'Burgers', 'Ensalada', 'Helado', 'Brunch', 'Cafe', 'Milanesas', 'Italiana', 'Pescados', 'Carnes', 'Desayunos', 'Postres', 'Vegetariana'];
+    a_kof = ["TODO", 'Pizza', 'Asiatica', 'Burgers', 'Ensalada', 'Helado', 'Brunch', 'Cafe', 'Milanesas', 'Italiana', 'Pescados', 'Carnes', 'Desayunos', 'Postres', 'Vegetariana'];
   } else {
     a_kof.push(kof);
   }
@@ -422,13 +422,13 @@ const filterFavoritesRestaurants = async (req, res, next) => {
 
   console.log(req.query);
 
-  let user = User.findById(userId);
+  let user = await User.findById(userId);
 
   try {
     // category es un string de categorias separado por comas
     // if (price) {
     result = await Restaurant.find({
-      name: {$in: ['Baltha01', 'Baltha03']},
+      name: {$in: user.favorite},
       // grade: {$gte: stars},
       kindOfFood:  {$in: a_kof}
       });
