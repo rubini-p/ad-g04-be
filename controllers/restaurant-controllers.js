@@ -1,240 +1,374 @@
-// WIP Armar controller
 const fs = require('fs');
 
 const { validationResult } = require('express-validator');
 const mongoose = require('mongoose');
-
+const Location = require('../utils/location');
 const HttpError = require('../models/http-error');
-const Receta = require('../models/receta');
+const Restaurant = require('../models/restaurant');
+const Menu = require('../models/menu');
 const User = require('../models/user');
+const {create} = require("axios");
 
-const getRecetas = async (req, res, next) => {
-  const recetaId = req.params.pid;
-  let recetasAll;
-  let recetas;
+const getRestaurants = async (req, res, next) => {
+  let restaurants;
   try {
-    recetas = await Receta.find();
-    console.log(recetas)
+    restaurants = await Restaurant.find(); 
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not find a receta.',
+        'Something went wrong, could not find a restaurant.',
         500
     );
+    console.log(error)
     return next(error);
   }
 
-  if (!recetas) {
+  if (!restaurants) {
     const error = new HttpError(
-        'Could not find receta for the provided id.',
+        'Could not find restaurants for the provided id.',
         404
     );
     return next(error);
   }
 
-  res.json({recetas});
+  res.json({restaurants});
 };
 
-const getRecetaById = async (req, res, next) => {
-  const recetaId = req.params.pid;
-
-  let receta;
+const getRestaurantsNearMe = async (req, res, next) => {
+  let restaurants;
   try {
-    receta = await Receta.findById(recetaId);
+    let maxDistance;
+    if (!req.query.maxDistance) {
+      maxDistance = 1000
+    } else {
+      maxDistance = req.query.maxDistance
+    }
+    restaurants = await Restaurant.find({
+      location:
+        { $near :
+            {
+              $geometry: { type: "Point",  coordinates: [ req.query.longitude, req.query.latitude ] },
+              $maxDistance: maxDistance
+            }
+        }
+    });
+    restaurants = restaurants.filter(restaurants => restaurants.temporarilyClosed == false);
   } catch (err) {
     const error = new HttpError(
-      'Something went wrong, could not find a receta.',
+      'Something went wrong, could not find a reataurant.',
       500
     );
     return next(error);
   }
 
-  if (!receta) {
+  if (!restaurants) {
     const error = new HttpError(
-      'Could not find receta for the provided id.',
+      'Could not find restaurants for the provided id.',
       404
     );
     return next(error);
   }
 
-  res.json({ receta: receta.toObject({ getters: true }) });
+  res.json({restaurants});
 };
 
-const getRecetasByUserId = async (req, res, next) => {
-  const userId = req.params.uid;
-  console.log(userId)
-  // let recetas;
-  let userWithRecetas;
-  try {
-    // userWithRecetas = await User.findById(userId).populate('recetas');
-    // userWithRecetas = await User.findById(userId).populate('recetas');
-    userWithRecetas = await User.findById(userId).populate('recetas');
-    console.log('pepe', userWithRecetas)
-  } catch (err) {
-    console.log(err)
-    const error = new HttpError(
-        'Fetching recetas failed, please try again later.',
-        500
-    );
-    return next(error);
-  }
-
-  // if (!recetas || recetas.length === 0) {
-  if (!userWithRecetas || userWithRecetas.recetas.length === 0) {
-    return next(
-        new HttpError('Could not find recetas for the provided user id.', 404)
-    );
-  }
-
-  res.json({
-    recetas: userWithRecetas.recetas.map(receta =>
-        receta.toObject({ getters: true })
-    )
-  });
-};
-
-const createReceta = async (req, res, next) => {
+const createRestaurant = async (req, res, next) => {
+  console.log('Creating restaurant...');
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
-        new HttpError('Invalid inputs passed, please check your data.', 422)
+      new HttpError('Invalid inputs passed, please check your data.', 422)
     );
   }
 
-  const { nombre_receta, ingredientes_ppal, ingredientes, categoria, dificultad, status, Proceso, Intro, rating, avatarUrl, coverUrl, creador } = req.body;
-
-  const createdReceta = new Receta({
-    nombre_receta,
-    ingredientes_ppal,
-    ingredientes,
-    categoria,
-    dificultad,
-    status,
-    Proceso,
-    Intro,
-    rating,
-    coverUrl,
-    avatarUrl,
-    creador: req.userData.userId
-  });
-
-  let user;
+  const { name, address, openTime, closeTime, temporarilyClosed, grade, kindOfFood, priceRange } = req.body;
+  let aux = address.number + ' ' + address.street  + ' ' + address.state ;
+  let coords = await Location(aux);
+  let restaurant;
   try {
-    user = await User.findById(req.userData.userId);
+    restaurant = await Restaurant.findOne({ name: name });
+    if(!restaurant){
+      const createdRestaurant = new Restaurant({
+        name,
+        address,
+        // funcion que obtenga lat y lng desde la address
+        location: { "type": "Point", "coordinates": [coords.lng, coords.lat] },
+        openTime,
+        closeTime,
+        temporarilyClosed, 
+        kindOfFood,
+        grade,
+        priceRange,
+        owner: req.userData.userId
+      });
+    
+      const menu = new Menu({
+        restaurant: createdRestaurant._id
+      });
+      await menu.save();
+
+      createdRestaurant.menu = menu._id;
+      let user;
+      try {
+        user = await User.findById(req.userData.userId);
+      } catch (err) {
+        const error = new HttpError(
+          'Creating restaurant failed, please try again user not found.',
+          500
+        );
+        return next(error);
+      }
+    
+      if (!user) {
+        const error = new HttpError('Could not find user for provided id.', 404);
+        return next(error);
+      }
+    
+      try {
+        await createdRestaurant.save();
+      } catch (err) {
+        const error = new HttpError(
+          'Creating restaurant failed, please try again.',
+          500
+        );
+        return next(error);
+      }
+      console.log('created restaurant: ', createdRestaurant.name)
+      res.status(201).json({ restaurant: createdRestaurant });
+    }else{
+      const errorER = new HttpError(
+        'Something went wrong, could not create restaurant.',
+        403
+      );
+      return next(errorER);
+    }
   } catch (err) {
     const error = new HttpError(
-        'Creating receta failed, please try again user not found.',
-        500
+      'Something went wrong, could not create restaurant.',
+      500
     );
     return next(error);
   }
-
-  if (!user) {
-    const error = new HttpError('Could not find user for provided id.', 404);
-    return next(error);
-  }
-
-  console.log(user);
-
-  try {
-    // const sess = await mongoose.startSession();
-    // console.log(sess)
-    createdReceta
-    // console.log(sess.startTransaction());
-    // console.log("2")
-    // await createdReceta.save({ session: sess });
-    await createdReceta.save();
-    console.log("3")
-    user.recetas.push(createdReceta);
-    console.log("4")
-    await user.save();
-    console.log("5")
-    // await sess.commitTransaction();
-  } catch (err) {
-    const error = new HttpError(
-        'Creating receta failed, please try again. no se por que falla',
-        500
-    );
-    return next(error);
-  }
-
-  res.status(201).json({ receta: createdReceta });
+  //
+  
 };
 
-const updateReceta = async (req, res, next) => {
+const updateRestaurant = async (req, res, next) => {
+  const errors = validationResult(req.body);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError('Invalid inputs passed, please check your data.', 422)
+    );
+  }
+
+  const { name, address, menu, openTime, closeTime, temporarilyClosed, grade, kindOfFood, priceRange  } = req.body;
+  const restaurantId = req.params.rid;
+  let restaurant;
+  try {
+    restaurant = await Restaurant.findById(restaurantId);
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not update restaurant.',
+      500
+    );
+    return next(error);
+  }
+  if (restaurant.owner.toString() !== req.userData.userId) {
+    const error = new HttpError('You are not allowed to edit this retaurant.', 401);
+    return next(error);
+  }
+
+  if (name) {
+    restaurant.name = name
+  }
+  if (address) {
+  restaurant.address = address;
+  let aux = address.number + ' ' + address.street  + ' ' + address.state ;
+  // console.log(aux);
+  let coords = await Location(aux);
+  // console.log(coords);
+    // 2216 virrey del pino buenos aires");
+  restaurant.location = { "type": "Point", "coordinates": [coords.lng, coords.lat]
+  }
+}
+  if (openTime) {
+    restaurant.openTime = openTime;
+  }
+  if (closeTime) {
+    restaurant.closeTime = closeTime;
+  }
+  if (temporarilyClosed) {
+    restaurant.temporarilyClosed = temporarilyClosed; // default value false
+  }
+    // restaurant.photos = photos;
+  if (kindOfFood) {
+    restaurant.kindOfFood = kindOfFood;
+  }
+  if (priceRange) {
+    restaurant.priceRange = priceRange;
+  }
+  if (grade) {
+    restaurant.grade = grade;
+  }
+  if (menu) {
+    restaurant.menu = menu;
+  }
+
+  try {
+    await restaurant.save();
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not update restaurant.',
+      500
+    );
+    return next(error);
+  }
+
+  res.status(200).json({ restaurant: restaurant.toObject({ getters: true }) });
+};
+
+const getRestaurantById = async (req, res, next) => {
+
+  console.log('getRestaurantByID...');
+  console.log('req: ', req.params);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
-        new HttpError('Invalid inputs passed, please check your data.', 422)
+      new HttpError('Invalid inputs passed, please check your data.', 422)
     );
   }
 
-  const { nombre_receta, ingredientes_ppal, ingredientes, categoria, dificultad, status, Proceso, Intro, rating, coverUrl, avatarUrl } = req.body;
-  const recetaId = req.params.pid;
-
-  let receta;
-  try {
-    receta = await Receta.findById(recetaId);
-  } catch (err) {
-    const error = new HttpError(
-        'Something went wrong, could not update receta.',
-        500
-    );
-    return next(error);
-  }
-
-  if (receta.creador.toString() !== req.userData.userId) {
-    const error = new HttpError('You are not allowed to edit this receta.', 401);
-    return next(error);
-  }
-
-  receta.nombre_receta = nombre_receta;
-  receta.ingredientes_ppal = ingredientes_ppal;
-  receta.ingredientes = ingredientes;
-  receta.categoria = categoria;
-  receta.dificultad = dificultad;
-  receta.status = status;
-  receta.Proceso = Proceso;
-  receta.Intro = Intro;
-  receta.rating = rating;
-  receta.coverUrl = coverUrl;
-  receta.avatarUrl = avatarUrl;
+  const restaurantId = req.params.rid;
+  let restaurant;
 
   try {
-    await receta.save();
+    // restaurant = await Restaurant.findById(restaurantId).populate('Menu');
+    restaurant = await Restaurant.findById(restaurantId).populate('menu');
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not update receta.',
-        500
+      'Something went wrong, could not get restaurant1.',
+      500
     );
     return next(error);
   }
 
-  res.status(200).json({ receta: receta.toObject({ getters: true }) });
+  // if (restaurant.owner.toString() !== req.userData.userId) {
+  //   const error = new HttpError('You are not allowed to edit this retaurant.', 401);
+  //   return next(error);
+  // }
+
+  console.log('encontre este resto: ', restaurant._id);
+  res.status(200).json({ restaurant: restaurant.toObject({ getters: true }) });
 };
 
-const deleteReceta = async (req, res, next) => {
-  const recetaId = req.params.pid;
+const getRestaurantsByUser = async (req, res, next) => {
 
-  let receta;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError('Invalid inputs passed, please check your data.', 422)
+    );
+  }
+
+  let restaurants;
+  // console.log('params: ', req.params);
   try {
-    receta = await Receta.findById(recetaId).populate('creador');
+    // restaurant = await Restaurant.findById(restaurantId).populate('Menu');
+
+    restaurants = await Restaurant.find({ owner: req.params.uid});
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not delete receta.',
-        500
+      'Something went wrong, could not get restaurant2.',
+      510
     );
     return next(error);
   }
 
-  if (!receta) {
+  // if (restaurant.owner.toString() !== req.userData.userId) {
+  //   const error = new HttpError('You are not allowed to edit this retaurant.', 401);
+  //   return next(error);
+  // }
+
+
+  res.status(200).json({ restaurants: restaurants.map(restaurant => restaurant.toObject({ getters: true })) });
+};
+
+const filterRestaurants = async (req, res, next) => {
+//  Filtros nearme stars pricerange categorias kindoffood
+  console.log('Filtering...')
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError('Invalid inputs passed, please check your data.', 422)
+    );
+  };
+
+  let result;
+  const { stars, kof, price, latitude, longitude, maxDistance } = req.query
+  let md
+  if (!maxDistance) {
+    md = 1000
+  } else {
+    md = maxDistance
+  }
+  let a_kof
+  a_kof = []
+  if (kof) {
+    a_kof = kof.split(',')
+    // console.log('kof: ', a_kof);
+  }
+  try {
+    // category es un string de categorias separado por comas
+    if (kof) {
+      result = await Restaurant.find({
+        grade: stars,
+        kindOfFood: {$in: a_kof},
+        temporarilyClosed: false,
+        priceRange: price,
+        location: {$near: {$geometry: {type: "Point", coordinates: [longitude, latitude]}, $maxDistance: md}}
+      })
+    } else {
+      result = await Restaurant.find({
+        grade: stars,
+        temporarilyClosed: false,
+        priceRange: price,
+        location: {$near: {$geometry: {type: "Point", coordinates: [longitude, latitude]}, $maxDistance: md}}
+      })
+    }
+      // console.log('Results: ', result)
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not get restaurant.',
+      510
+    );
+    return next(error);
+  };
+
+  res.status(200).json({ restaurants: result.map(restaurant => restaurant.toObject({ getters: true })) });
+}
+
+const deleteRestaurant = async (req, res, next) => {
+  const restaurantId = req.params.rid;
+
+  let restaurant;
+  try {
+    restaurant = await Restaurant.findById(restaurantId).populate('owner');
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not delete restaurant.',
+      500
+    );
+    return next(error);
+  }
+
+  if (!restaurant) {
     const error = new HttpError('Could not find receta for this id.', 404);
     return next(error);
   }
 
-  if (receta.creador.id !== req.userData.userId) {
+  if (restaurant.owner.id !== req.userData.userId) {
     const error = new HttpError(
-        'You are not allowed to delete this receta.',
-        401
+      'You are not allowed to delete this restaurant.',
+      401
     );
     return next(error);
   }
@@ -244,14 +378,14 @@ const deleteReceta = async (req, res, next) => {
   try {
     // const sess = await mongoose.startSession();
     // sess.startTransaction();
-    await receta.remove();
-    receta.creador.recetas.pull(receta);
-    await receta.creador.save();
+    await restaurant.remove();
+    // restaurant.owner.restaurant.pull(restaurant);
+    // await restaurant.owner.save();
     // await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
-        'Something went wrong, could not delete receta.',
-        500
+      'Something went wrong, could not delete restaurant.',
+      500
     );
     return next(error);
   }
@@ -260,12 +394,14 @@ const deleteReceta = async (req, res, next) => {
   //   console.log(err);
   // });
 
-  res.status(200).json({ message: 'Deleted receta.' });
+  res.status(200).json({ message: 'Deleted restaurant.' });
 };
 
-exports.getRecetaById = getRecetaById;
-exports.getRecetas = getRecetas;
-exports.getRecetasByUserId = getRecetasByUserId;
-exports.createReceta = createReceta;
-exports.updateReceta = updateReceta;
-exports.deleteReceta = deleteReceta;
+exports.getRestaurants = getRestaurants;
+exports.getRestaurantById = getRestaurantById;
+exports.getRestaurantsByUser = getRestaurantsByUser;
+exports.getRestaurantsNearMe = getRestaurantsNearMe;
+exports.createRestaurant = createRestaurant;
+exports.updateRestaurant = updateRestaurant;
+exports.deleteRestaurant = deleteRestaurant;
+exports.filterRestaurants = filterRestaurants;

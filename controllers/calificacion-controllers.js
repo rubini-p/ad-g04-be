@@ -2,26 +2,27 @@ const HttpError = require("../models/http-error");
 const Calificacion = require("../models/calificacion");
 const User = require("../models/user");
 const Restaurant = require("../models/restaurant");
-const calificacion = require("../models/calificacion");
+// const calificacion = require("../models/calificacion");
 
 const altaCalificacion = async (req, res, next) => {
-  console.log(req);
-  let { restaurant_id, usuario_id, puntuacion, comentario, fecha } = req.body;
+  console.log('creando calificacion...', req.body);
+  let { restaurant_id, username, stars, comment, date } = req.body;
   if (validarFormulario) {
     let usuario;
-    try {
-      usuario = await User.findById(usuario_id);
-    } catch (err) {
-      const error = new HttpError(
-        "No se puede encontrar un usuario con el id indicado",
-        500
-      );
-      return next(error);
-    }
+    // try {
+    //   usuario = await User.findById(usuario_id);
+    // } catch (err) {
+    //   const error = new HttpError(
+    //     "No se puede encontrar un usuario con el id indicado",
+    //     500
+    //   );
+    //   return next(error);
+    // }
 
     let restaurant;
     try {
       restaurant = await Restaurant.findById(restaurant_id);
+      console.log("este es el resto que encontre: ", restaurant._id);
     } catch (err) {
       const error = new HttpError(
         "No se puede encontrar un restaurant con el id indicado",
@@ -31,15 +32,40 @@ const altaCalificacion = async (req, res, next) => {
     }
 
     let calificacion = new Calificacion({
-      restaurant_id: restaurant_id,
-      usuario_id: usuario_id,
-      puntuacion: puntuacion,
-      comentario: comentario,
-      fecha: fecha,
+      restaurant_id,
+      username,
+      stars,
+      comment,
+      date
     });
+    // console.log("esta es la calificacion creada: ", calificacion)
+
+    // #### obtener promedio
+
+    // avg = await Calificacion.find({restaurant_id: req.body.restaurant_id})
+    // console.log('rid: ',req.body.restaurant_id )
+
+    let resto = await Restaurant.findById(req.body.restaurant_id);
+    const avg = await Calificacion.aggregate(
+      [
+        { $match : { restaurant_id: resto._id } },
+        {$group:{_id: "$restaurant_id",
+            avg: { $avg: "$stars" }
+          }
+        }
+      ]
+    )
+
+    resto.grade = Math.round(avg[0].avg * 10) / 10
+
+    // console.log('avg ', avg[0].avg);
+
+    // ####
 
     try {
+
       await calificacion.save();
+      await resto.save()
     } catch (err) {
       const error = new HttpError(
         "No se pudo crear la calificación, por favor probar nuevamente.",
@@ -79,14 +105,11 @@ const ObtenerPromedioPorRestaurant = async (req, res, next) => {
 };
 
 const obtenerCalificacionesRestaurant = async (req, res, next) => {
-  let { restaurant } = req.params;
-
   let listByRestaurant;
+
   try {
-    listByRestaurant = await calificacion.findOne({
-      restaurant_id: restaurant,
-    });
-    console.log(listByRestaurant);
+    listByRestaurant = await Calificacion.find({ restaurant_id: req.params.rid } );
+    // console.log(listByRestaurant);
   } catch (err) {
     const error = new HttpError(
       "No se encontraron calificaciones para el restaurante indicado",
@@ -103,7 +126,7 @@ const obtenerCalificacionesByID = async (restaurant_id) => {
     listOfCalifications = await calificacion.findOne({
       restaurant_id: restaurant_id,
     });
-    console.log(listOfCalifications);
+    // console.log(listOfCalifications);
   } catch (err) {
     const error = new HttpError(
       "No se encontraron calificaciones para el restaurante indicado",
