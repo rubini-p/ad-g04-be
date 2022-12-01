@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 
 const HttpError = require("../models/http-error");
 const Food = require("../models/food");
+const Menu = require("../models/menu");
+const Restaurant = require("../models/restaurant");
+
+const restaurantController = require('../controllers/restaurant-controllers');
+
 
 const getFoodByMenuByCategory = async (req, res, next) => {
   console.log('getfood byby...');
@@ -28,6 +33,47 @@ const getFoodByMenuByCategory = async (req, res, next) => {
   }
   res.json({ existingFood: existingFood.map(food => food.toObject({ getters: true })) });
 };
+/*
+const getFoodByMenu = async (menuId) => {
+  console.log("entre al get");
+  console.log(menuId)
+  //const { menuId } = req.body;
+  //console.log("lo que tengo en el menuid", menuId)
+  let existingMenu;
+  try {
+    existingMenu = await Menu.findById(menuId);
+    //console.log(existingMenu)
+    //console.log("la food que encontre", existingFood)
+    const avg = await Food.aggregate(
+      [
+        { $match : { menuId: existingMenu._id } },
+        {$group:{_id: null,
+            avg: { $avg: "$price" }
+          }
+        }
+      ]
+    )
+    console.log("avg",avg)
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not find a food.",
+      500
+    );
+    console.log("falle 1")
+    //return error;
+  }
+
+  if (!existingFood) {
+    const error = new HttpError(
+      "Could not find food for the provided id.",
+      404
+    );
+    console.log("falle2")
+    //return error;
+  }
+  //return 0;
+  //res.json({ existingFood: existingFood.map(food => food.toObject({ getters: true })) });
+};*/
 
 const createFood = async function (req, res, next) {
     const errors = validationResult(req);
@@ -43,6 +89,37 @@ const createFood = async function (req, res, next) {
       });
       try {
         await createdFood.save();
+        //await getFoodByMenu(menuId);
+        try {
+          existingMenu = await Menu.findById(menuId);
+          //console.log(existingMenu)
+          //console.log("la food que encontre", existingFood)
+          const avg = await Food.aggregate(
+            [
+              { $match : { menuId: existingMenu._id } },
+              {$group:{_id: null,
+                  avg: { $avg: "$price" }
+                }
+              }
+            ]
+          )
+          let avgFinal;
+          if(avg[0].avg < 800){
+            avgFinal = 1;  
+          }else if(avg[0].avg < 1600 ){
+              avgFinal = 2; 
+            }else if(avg[0].avg < 2400 ){
+              avgFinal = 3; 
+              }else{
+                avgFinal = 4; 
+              }
+          let aver = await Restaurant.findOneAndUpdate( {menu : existingMenu._id},{priceRange: avgFinal} );
+        } catch (err) {
+          const error = new HttpError(
+            "Something went wrong, could not find a food.",
+            500
+          );
+        }
       } catch (err) {
         const error = new HttpError(
           "Save failed, please try again later.",
