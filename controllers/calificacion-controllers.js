@@ -30,7 +30,9 @@ const altaCalificacion = async (req, res, next) => {
       );
       return next(error);
     }
-
+    if (stars = 0) {
+      stars = 0.1
+    }
     let calificacion = new Calificacion({
       restaurant_id,
       username,
@@ -55,17 +57,19 @@ const altaCalificacion = async (req, res, next) => {
         }
       ]
     )
-
-    resto.grade = Math.round(avg[0].avg * 10) / 10
-
+    console.log(avg)
+    if (avg[0]) {
+      resto.grade = Math.round(avg[0].avg * 10) / 10
+    }
     // console.log('avg ', avg[0].avg);
 
     // ####
 
     try {
-
+      console.log('empece a guardar');
       await calificacion.save();
       await resto.save()
+      console.log('guarde todo');
     } catch (err) {
       const error = new HttpError(
         "No se pudo crear la calificación, por favor probar nuevamente.",

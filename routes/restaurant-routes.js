@@ -14,10 +14,12 @@ router.get('/id/:rid', restaurantController.getRestaurantById);
 router.get('/user/:uid', restaurantController.getRestaurantsByUser);
 router.get('/nearme', restaurantController.getRestaurantsNearMe);
 router.get('/filter', restaurantController.filterRestaurants);
+router.get('/filterfavorites', restaurantController.filterRestaurants);
 
 // router.get('/:pid', restaurantController.getRestaurantById);
 
 // router.get('/user/:uid', restaurantController.getRestaurantsByUserId);
+router.delete('/:rid', restaurantController.deleteRestaurant);
 
 router.use(checkAuth);
 
@@ -43,6 +45,5 @@ router.post(
 //
 router.patch('/:rid', restaurantController.updateRestaurant);
 
-router.delete('/:rid', restaurantController.deleteRestaurant);
 
 module.exports = router;

@@ -35,7 +35,7 @@ const signup = async (req, res, next) => {
 
   let existingUser;
   try {
-    existingUser = await User.findOne({ email: email });
+    existingUser = await User.findOne({ email: email, isAdmin: true });
   } catch (err) {
     const error = new HttpError(
       'Signing up failed, please try again later.',
@@ -103,8 +103,6 @@ const signup = async (req, res, next) => {
     .json({ userId: createdUser.id, email: createdUser.email, token: token });
 };
 
-
-
 const editUser = async (req, res, next) => {
   console.log('editing user.. ');
   const errors = validationResult(req);
@@ -114,11 +112,18 @@ const editUser = async (req, res, next) => {
     );
   }
 
-  const { name, email, photo, defaultImage, favorite } = req.body;
-
+  const { name, email, photo, defaultImage, favorite, userId} = req.body;
+  console.log('la foto es:', photo);
   let existingUser;
+  let uid;
+  if (!req.userData) {
+    uid = userId;
+  } else {
+    uid = req.userData.userId ;
+  }
+
   try {
-    existingUser = await User.findById(req.userData.userId);
+    existingUser = await User.findById(uid);
   } catch (err) {
     console.log('token');
     const error = new HttpError(
@@ -127,7 +132,6 @@ const editUser = async (req, res, next) => {
     );
     return next(error);
   }
-
   if (!existingUser) {
     const error = new HttpError(
       'User does not exist, please signup instead.',
@@ -143,7 +147,7 @@ const editUser = async (req, res, next) => {
     existingUser.email = email;
   };
   if (photo) {
-    existingUser.photo = new Buffer(photo,"base64");
+    existingUser.photo = photo;
   };
   if (defaultImage) {
     existingUser.defaultImage = defaultImage;
@@ -167,10 +171,6 @@ const editUser = async (req, res, next) => {
     .status(201)
     .json({ message: 'user updated' });
 };
-
-
-
-
 
 const login = async (req, res, next) => {
   const { email, password } = req.body;
@@ -213,6 +213,65 @@ const login = async (req, res, next) => {
     );
     return next(error);
   }
+
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: existingUser.id, email: existingUser.email },
+      'supersecret_dont_share'
+      // ,
+      // { expiresIn: '1h' }
+    );
+  } catch (err) {
+    const error = new HttpError(
+      'Logging in failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+  console.log('login successfull: ', existingUser.email)
+  res.json({
+    name: existingUser.name,
+    userId: existingUser.id,
+    email: existingUser.email,
+    token: token,
+    favorite: existingUser.favorite,
+    photo: existingUser.photo,
+    defaultImage: existingUser.defaultImage,
+    isAdmin: existingUser.isAdmin,
+  });
+};
+
+const loginGoogle = async (req, res, next) => {
+  console.log('login in google...')
+  const { email } = req.body;
+
+  let existingUser;
+
+  try {
+    existingUser = await User.findOne({ email: email, isAdmin: false });
+  } catch (err) {
+    const error = new HttpError(
+      'Logging in failed, please try again later.',
+      500
+    );
+    return next(error);
+  }
+
+  let user ;
+  if (!existingUser) {
+    try {
+      console.log('creating user...');
+      user = new User({ email, isAdmin: false });
+      await user.save()
+      console.log('guarde el user...');
+    } catch (err) {
+    const error = new HttpError(
+      'Invalid credentials, could not log you in.',
+      403
+    );
+    return next(error);
+  }};
 
   let token;
   try {
@@ -455,12 +514,14 @@ const checkToken = async (req, res) => {
   }
 }
 
+
 exports.editUser = editUser;
 exports.getUsers = getUsers;
 exports.signup = signup;
 exports.checkToken = checkToken;
 exports.deleteAccount = deleteAccount;
 exports.login = login;
+exports.loginGoogle = loginGoogle;
 exports.reset = reset;
 exports.changePassword = changePassword;
 exports.resetPassword = resetPassword;

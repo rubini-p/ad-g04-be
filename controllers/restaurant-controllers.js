@@ -34,6 +34,7 @@ const getRestaurants = async (req, res, next) => {
 };
 
 const getRestaurantsNearMe = async (req, res, next) => {
+  console.log('nearme...');
   let restaurants;
   try {
     let maxDistance;
@@ -153,6 +154,7 @@ const createRestaurant = async (req, res, next) => {
 };
 
 const updateRestaurant = async (req, res, next) => {
+  console.log('Updating restaurant');
   const errors = validationResult(req.body);
   if (!errors.isEmpty()) {
     return next(
@@ -196,7 +198,9 @@ const updateRestaurant = async (req, res, next) => {
   if (closeTime) {
     restaurant.closeTime = closeTime;
   }
-  if (temporarilyClosed) {
+
+  console.log('isclosed:', temporarilyClosed);
+  if (temporarilyClosed !== null) {
     restaurant.temporarilyClosed = temporarilyClosed; // default value false
   }
     // restaurant.photos = photos;
@@ -229,7 +233,7 @@ const updateRestaurant = async (req, res, next) => {
 const getRestaurantById = async (req, res, next) => {
 
   console.log('getRestaurantByID...');
-  console.log('req: ', req.params);
+  // console.log('req: ', req.params);
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
@@ -303,37 +307,58 @@ const filterRestaurants = async (req, res, next) => {
   };
 
   let result;
-  const { stars, kof, price, latitude, longitude, maxDistance } = req.query
-  let md
-  if (!maxDistance) {
-    md = 1000
+  let { stars, kof, price, latitude, longitude, maxDistance } = req.query
+  let md;
+
+  if (!stars) {
+    stars = 0;
+  }
+
+  if (kof === 'TODO' || kof === '') {
+    kof = ["TODO!", 'Pizza', 'Asiatica', 'Burgers', 'Ensalada', 'Helado', 'Brunch', 'Cafe', 'Milanesas', 'Italiana', 'Pescados', 'Carnes', 'Desayunos', 'Postres', 'Vegetariana'];
+  }
+  if (maxDistance === '') {
+    md = 1000;
   } else {
     md = maxDistance
   }
-  let a_kof
-  a_kof = []
-  if (kof) {
-    a_kof = kof.split(',')
-    // console.log('kof: ', a_kof);
-  }
+  console.log(md);
+  // if (!maxDistance) {
+  //   md = 0
+  // } else {
+  //   md = maxDistance
+  // }
+
+  // a_price = []
+  // if (price) {
+  //   price = kof.replace('"','').split(',')
+  //   // console.log('kof: ', a_kof);
+  // }
+  console.log(req.query);
+  if (!price) {
+    price = [1,2,3,4];
+  };
+
+  console.log(price,stars,md,latitude,longitude,kof);
+
   try {
     // category es un string de categorias separado por comas
-    if (kof) {
+    // if (price) {
       result = await Restaurant.find({
-        grade: stars,
-        kindOfFood: {$in: a_kof},
+        grade: {$gte: stars},
+        kindOfFood: {$in: kof },
         temporarilyClosed: false,
-        priceRange: price,
+        priceRange: {$in: price},
         location: {$near: {$geometry: {type: "Point", coordinates: [longitude, latitude]}, $maxDistance: md}}
-      })
-    } else {
-      result = await Restaurant.find({
-        grade: stars,
-        temporarilyClosed: false,
-        priceRange: price,
-        location: {$near: {$geometry: {type: "Point", coordinates: [longitude, latitude]}, $maxDistance: md}}
-      })
-    }
+      });
+    // } else {
+    //   result = await Restaurant.find({
+    //     grade: {$gte: stars},
+    //     temporarilyClosed: false,
+    //     priceRange: price,
+    //     location: {$near: {$geometry: {type: "Point", coordinates: [longitude, latitude]}, $maxDistance: md}}
+    //   })
+    // }
       // console.log('Results: ', result)
   } catch (err) {
     const error = new HttpError(
@@ -342,16 +367,95 @@ const filterRestaurants = async (req, res, next) => {
     );
     return next(error);
   };
-
+  console.log(result);
   res.status(200).json({ restaurants: result.map(restaurant => restaurant.toObject({ getters: true })) });
 }
+
+const filterFavoritesRestaurants = async (req, res, next) => {
+//  Filtros nearme stars pricerange categorias kindoffood
+  console.log('Filtering...')
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return next(
+      new HttpError('Invalid inputs passed, please check your data.', 422)
+    );
+  };
+
+  let result;
+  let { stars, kof, price, latitude, longitude, maxDistance, userId } = req.query
+  let md;
+
+  if (!stars) {
+    stars = 0;
+  }
+
+  if (kof === 'TODO' || kof === '') {
+    kof = ["TODO!", 'Pizza', 'Asiatica', 'Burgers', 'Ensalada', 'Helado', 'Brunch', 'Cafe', 'Milanesas', 'Italiana', 'Pescados', 'Carnes', 'Desayunos', 'Postres', 'Vegetariana'];
+  }
+  if (maxDistance === '') {
+    md = 1000;
+  } else {
+    md = maxDistance
+  }
+  console.log(md);
+  // if (!maxDistance) {
+  //   md = 0
+  // } else {
+  //   md = maxDistance
+  // }
+
+  // a_price = []
+  // if (price) {
+  //   price = kof.replace('"','').split(',')
+  //   // console.log('kof: ', a_kof);
+  // }
+  console.log(req.query);
+  if (!price) {
+    price = [1,2,3,4];
+  };
+
+  console.log(price,stars,md,latitude,longitude,kof);
+
+  let user = User.findById(userId);
+
+  try {
+    // category es un string de categorias separado por comas
+    // if (price) {
+    result = await Restaurant.find({
+      _id: { $in: user.favorite},
+      grade: {$gte: stars},
+      kindOfFood: {$in: kof },
+      temporarilyClosed: false,
+      priceRange: {$in: price},
+      location: {$near: {$geometry: {type: "Point", coordinates: [longitude, latitude]}, $maxDistance: md}}
+    });
+    // } else {
+    //   result = await Restaurant.find({
+    //     grade: {$gte: stars},
+    //     temporarilyClosed: false,
+    //     priceRange: price,
+    //     location: {$near: {$geometry: {type: "Point", coordinates: [longitude, latitude]}, $maxDistance: md}}
+    //   })
+    // }
+    // console.log('Results: ', result)
+  } catch (err) {
+    const error = new HttpError(
+      'Something went wrong, could not get restaurant.',
+      510
+    );
+    return next(error);
+  };
+  console.log(result);
+  res.status(200).json({ restaurants: result.map(restaurant => restaurant.toObject({ getters: true })) });
+}
+
 
 const deleteRestaurant = async (req, res, next) => {
   const restaurantId = req.params.rid;
 
   let restaurant;
   try {
-    restaurant = await Restaurant.findById(restaurantId).populate('owner');
+    restaurant = await Restaurant.findById(restaurantId);
   } catch (err) {
     const error = new HttpError(
       'Something went wrong, could not delete restaurant.',
@@ -364,14 +468,14 @@ const deleteRestaurant = async (req, res, next) => {
     const error = new HttpError('Could not find receta for this id.', 404);
     return next(error);
   }
-
-  if (restaurant.owner.id !== req.userData.userId) {
-    const error = new HttpError(
-      'You are not allowed to delete this restaurant.',
-      401
-    );
-    return next(error);
-  }
+  // console.log(restaurant.owner.toString(), req.userData.userId);
+  // if (restaurant.owner.toString() !== req.userData.userId) {
+  //   const error = new HttpError(
+  //     'You are not allowed to delete this restaurant.',
+  //     401
+  //   );
+  //   return next(error);
+  // }
 
   // const imagePath = receta.image;
 
@@ -405,3 +509,4 @@ exports.createRestaurant = createRestaurant;
 exports.updateRestaurant = updateRestaurant;
 exports.deleteRestaurant = deleteRestaurant;
 exports.filterRestaurants = filterRestaurants;
+exports.filterFavoritesRestaurants = filterFavoritesRestaurants;
