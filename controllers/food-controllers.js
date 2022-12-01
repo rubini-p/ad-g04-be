@@ -5,7 +5,9 @@ const HttpError = require("../models/http-error");
 const Food = require("../models/food");
 
 const getFoodByMenuByCategory = async (req, res, next) => {
-  const { menuId, category } = req.body;
+  console.log('getfood byby...');
+  const { menuId, category } = req.query;
+  console.log('body: ', req.query);
   let existingFood;
   try {
     existingFood = await Food.find({menuId: menuId, category: category});
