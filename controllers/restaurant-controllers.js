@@ -240,9 +240,11 @@ const updateRestaurant = async (req, res, next) => {
   }
 
   console.log('isclosed:', temporarilyClosed);
-  if (typeof temporarilyClosed !== undefined) {
+  if ( typeof temporarilyClosed !== 'undefined') {
+    console.log('en el if de tempclosed');
     restaurant.temporarilyClosed = temporarilyClosed; // default value false
   }
+  console.log('isClosedResto ', restaurant.temporarilyClosed);
     // restaurant.photos = photos;
   if (kindOfFood) {
     restaurant.kindOfFood = kindOfFood;
